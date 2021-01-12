@@ -113,7 +113,62 @@ def addShipper():
   kursor.execute('insert into shipper (shipperid, companyName, phone) values (%s,%s,%s)', (str(i), companyName, phone))
   mydb.commit()
 
+def addCustomer():
+  kursor.execute('select customerid from customer')
+  indeksy = []
+  for i in kursor:
+    indeksy.append(i[0])
 
+  companyName = input("Podaj nazwe firmy\n")
+  contactName = input("Podaj imie i nazwisko (wymagane)\n")
+  phone = input("Podaj numer telefonu (wymagane)\n")
+  address = input("Podaj adres\n")
+  city = input("Podaj miasto\n")
+  postalCode = input("Podaj kod pocztowy (same liczby)\n")
+  country = input("Podaj kraj\n")
+
+  i=1
+  while i in indeksy:
+    i+=1
+  kursor.execute('insert into customer (customerid, companyname, contactName, phone, address, city, postalCode, country) values (%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), companyName, contactName, phone, address, city, postalCode, country))
+  mydb.commit()  
+
+def addRegion():
+  kursor.execute('select regionid from region')
+  indeksy = []
+  for i in kursor:
+    indeksy.append(i[0])
+
+  regionDescription = input("Podaj opis regionu (wymagane)\n")
+
+  i=1
+  while i in indeksy:
+    i+=1
+  kursor.execute('insert into region (regionid, regionDescription) values (%s,%s)', (str(i), regionDescription))
+  mydb.commit() 
+
+def addEmployees():
+  kursor.execute('select employeeid from employees')
+  indeksy = []
+  for i in kursor:
+    indeksy.append(i[0])
+
+  lastName = input("Podaj nazwisko (wymagane)\n")
+  firstName = input("Podaj imie (wymagane)")
+  hireTime = input("Podaj date zatrudnienia (Format:)")
+  title = input("Podaj stanowisko")
+  phone = input("Podaj numer telefonu (wymagane)")
+  email = input("Podaj email (wymagane)")
+  regionID = input("Podaj region w jakim pracujesz")
+
+  i=1
+  while i in indeksy:
+    i+=1
+  kursor.execute('insert into employees (employeeid, lastName, firstName, hireTime, title, phone, email, regionID) values (%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), lastName, firstName, hireTime, title, phone, email, regionID))
+  mydb.commit() 
+
+def addOrders():
+  pass
 
 
 
@@ -144,6 +199,12 @@ def main():
         addServiceSupplier()
       elif decyzja2 == 5:
         addService()
+      elif decyzja2 == 6:
+        addCustomer()
+      elif decyzja2 == 7:
+        addRegion()
+      elif decyzja2 == 8:
+        addEmployees()
     if decyzja1 == 2:
       decyzja3 = input("Z jakiej tabeli chcesz wyswietlic dane?\n")
       decyzja4 = input("Jakie kolumny chcesz wyswietlic\n")
@@ -161,6 +222,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
