@@ -154,12 +154,12 @@ def addEmployees():
     indeksy.append(i[0])
 
   lastName = input("Podaj nazwisko (wymagane)\n")
-  firstName = input("Podaj imie (wymagane)")
-  hireTime = input("Podaj date zatrudnienia (Format:)")
-  title = input("Podaj stanowisko")
-  phone = input("Podaj numer telefonu (wymagane)")
-  email = input("Podaj email (wymagane)")
-  regionID = input("Podaj region w jakim pracujesz")
+  firstName = input("Podaj imie (wymagane)\n")
+  hireTime = input("Podaj date zatrudnienia (Format:rrrr-mm-dd)\n")
+  title = input("Podaj stanowisko\n")
+  phone = input("Podaj numer telefonu (wymagane)\n")
+  email = input("Podaj email (wymagane)\n")
+  regionID = input("Podaj region w jakim pracujesz\n")
 
   i=1
   while i in indeksy:
@@ -168,12 +168,47 @@ def addEmployees():
   mydb.commit() 
 
 def addOrders():
-  pass
+  kursor.execute('select orderid from orders')
+  indeksy = []
+  for i in kursor:
+    indeksy.append(i[0])
 
+  orderDate = input("Podaj date zamowienia (wymagane)")
+  shippedDate = input("Podaj date wyslania produkty")
+  shipVia = input("Jakim sposobem wyslano produkt")
+  shipName = input("Podaj imie dostawcy")
+  shipAddress = input("Podaj adres dostawy")
+  shipCity = input("Podaj miasto do dostawy")
+  shipPostal = input("Podaj kod pocztowy dostawy")
+  shipCountry = input("Podaj kraj dostawy")
+  employeeID = input("Podaj id pracownika odpowiedzialnego za zamowienie")
+  customerID = input("Podaj id kupca")
+  shipperID = input("Podaj id dostawcy")
 
+  i=1
+  while i in indeksy:
+    i+=1
+  kursor.execute('insert into orders (orderID, orderDate, shippedDate, shipVia, shipName, shipAddress, shipCity, shipPostal, shipCountry, employeeID, customerID, shipperID) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), orderDate, shippedDate, shipVia, shipName, shipAddress, shipCity, shipPostal, shipCountry, employeeID, customerID, shipperID))
+  mydb.commit() 
 
+def addOrderDetails():
+  unitPrice = input("Podaj cene jednostkowa")
+  Quantity = input("Podaj ilosc")
+  Discount = input("Jaka jest znizka (Jezeli nie to 0)")
+  ProductID = input("Podaj ID kupionego produktu")
+  type = input("Produkt czy usluga(1 czy 2)")
+  orders_EmployeeID = input("Podaj id pracownika")
+  orders_CustomerID = input("Podaj id kupujacego")
+  orders_ShipperID = input("Podaj id dostawcy")
+  OrderID = input("Podaj id zamowienia")
+  serviceID = input("Podaj id uslugi")
 
-
+  if type.lower() == '1':
+    kursor.execute('insert into orderdetails (unitPrice, Quantity, Discount, ProductID, type, orders_EmployeeID, orders_CustomerID, orders_ShipperID, OrderID) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)', (unitPrice, Quantity, Discount, ProductID, type, orders_EmployeeID, orders_CustomerID, orders_ShipperID, OrderID))
+    mydb.commit() 
+  elif type.lower() == '2':
+    kursor.execute('insert into orderdetails (unitPrice, Quantity, Discount, serviceID, type, orders_EmployeeID, orders_CustomerID, orders_ShipperID, OrderID) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)', (unitPrice, Quantity, Discount, serviceID, type, orders_EmployeeID, orders_CustomerID, orders_ShipperID, OrderID))
+    mydb.commit() 
 
 
 
@@ -187,24 +222,29 @@ def main():
       for i in kursor:
         print(str(k)+'. '+i[0])
         k+=1
-      #print('1.Category\n2.Supplier\n3.Product')
       decyzja2 = int(input())
       if decyzja2 == 1:
         addCategory()
       elif decyzja2 == 2:
-        addSupplier()
-      elif decyzja2 == 3:
-        addProduct()
-      elif decyzja2 == 4:
-        addServiceSupplier()
-      elif decyzja2 == 5:
-        addService()
-      elif decyzja2 == 6:
         addCustomer()
+      elif decyzja2 == 3:
+        addEmployees()
+      elif decyzja2 == 4:
+        addOrderDetails()
+      elif decyzja2 == 5:
+        addOrders()
+      elif decyzja2 == 6:
+        addProduct()
       elif decyzja2 == 7:
         addRegion()
       elif decyzja2 == 8:
-        addEmployees()
+        addService()
+      elif decyzja2 == 9:
+        addServiceSupplier()
+      elif decyzja2 == 10:
+        addShipper()
+      elif decyzja2 == 11:
+        addSupplier()
     if decyzja1 == 2:
       decyzja3 = input("Z jakiej tabeli chcesz wyswietlic dane?\n")
       decyzja4 = input("Jakie kolumny chcesz wyswietlic\n")
