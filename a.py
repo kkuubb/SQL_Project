@@ -1,4 +1,7 @@
 import mysql.connector
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QApplication, QMainWindow
+import sys
 
 #haslo = !Haslo123123
 #user = input('Podaj uzytkownika')
@@ -213,7 +216,8 @@ def addOrderDetails():
 
 
 def main():
-  while(1):
+  dziala = 1
+  while(dziala):
     decyzja1 = int(input('Co chesz zrobic\n1.Dodac do tabeli\n2.Zobaczyc tabele\n'))
     if decyzja1 == 1:
       print('Do jakiej tabeli chcesz dodac rekord?\n')
