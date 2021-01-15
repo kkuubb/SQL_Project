@@ -116,24 +116,16 @@ def addShipper():
   kursor.execute('insert into shipper (shipperid, companyName, phone) values (%s,%s,%s)', (str(i), companyName, phone))
   mydb.commit()
 
-def addCustomer():
+def addCustomer(companyName, contactName, phone, address, city, postalCode, country, nick, pswd):
   kursor.execute('select customerid from customer')
   indeksy = []
   for i in kursor:
     indeksy.append(i[0])
 
-  companyName = input("Podaj nazwe firmy\n")
-  contactName = input("Podaj imie i nazwisko (wymagane)\n")
-  phone = input("Podaj numer telefonu (wymagane)\n")
-  address = input("Podaj adres\n")
-  city = input("Podaj miasto\n")
-  postalCode = input("Podaj kod pocztowy (same liczby)\n")
-  country = input("Podaj kraj\n")
-
   i=1
   while i in indeksy:
     i+=1
-  kursor.execute('insert into customer (customerid, companyname, contactName, phone, address, city, postalCode, country) values (%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), companyName, contactName, phone, address, city, postalCode, country))
+  kursor.execute('insert into customer (customerid, companyname, contactName, phone, address, city, postalCode, country, nick, pswd) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), companyName, contactName, phone, address, city, postalCode, country,nick, pswd))
   mydb.commit()  
 
 def addRegion():
@@ -210,7 +202,8 @@ def addOrderDetails():
     kursor.execute('insert into orderdetails (unitPrice, Quantity, Discount, ProductID, type, orders_EmployeeID, orders_CustomerID, orders_ShipperID, OrderID) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)', (unitPrice, Quantity, Discount, ProductID, type, orders_EmployeeID, orders_CustomerID, orders_ShipperID, OrderID))
     mydb.commit() 
   elif type.lower() == '2':
-    kursor.execute('insert into orderdetails (unitPrice, Quantity, Discount, serviceID, type, orders_EmployeeID, orders_CustomerID, orders_ShipperID, OrderID) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)', (unitPrice, Quantity, Discount, serviceID, type, orders_EmployeeID, orders_CustomerID, orders_ShipperID, OrderID))
+    #kursor.execute('insert into orderdetails (unitPrice, Quantity, Discount, serviceID, type, orders_EmployeeID, orders_CustomerID, orders_ShipperID, OrderID) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)', (unitPrice, Quantity, Discount, serviceID, type, orders_EmployeeID, orders_CustomerID, orders_ShipperID, OrderID))
+    print('insert into orderdetails (unitPrice, Quantity, Discount, serviceID, type, orders_EmployeeID, orders_CustomerID, orders_ShipperID, OrderID) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)', (unitPrice, Quantity, Discount, serviceID, type, orders_EmployeeID, orders_CustomerID, orders_ShipperID, OrderID))
     mydb.commit() 
 
 
