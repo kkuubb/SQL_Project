@@ -3,8 +3,6 @@ import mysql.connector
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QApplication, QComboBox, QMainWindow
 import sys
-from a import *
-
 
 
 
@@ -98,6 +96,10 @@ class oknoZaloguj(QMainWindow):
         self.bPOA3.move(self.szerokosc/2+bs/2, self.wysokosc*0.6)
         self.bPOA3.hide()
 
+        self.bPOA1.clicked.connect(self.zobaczRekordy)
+        self.bPOA2.clicked.connect(self.przejdzDoDodawaniaRekordow)
+        self.bPOA3.clicked.connect(self.przejdzDoUsuwaniaRekordow)
+
         #Zobacz rekordy
         self.lZR1 = QtWidgets.QLabel(self)
         self.lZR1.setText("Jaka tabele chcesz zobaczyc?")
@@ -118,6 +120,7 @@ class oknoZaloguj(QMainWindow):
         self.cbZR1 = QtWidgets.QComboBox(self)
         self.cbZR1.hide()
         self.columna = self.cbZR1.currentText()
+        self.cbZR1.currentTextChanged.connect(self.updateState)
 
         self.cbZR2 = QtWidgets.QComboBox(self)
         self.cbZR2.hide()
@@ -127,6 +130,7 @@ class oknoZaloguj(QMainWindow):
         bs = self.bZR1.size().width()
         self.bZR1.move(self.szerokosc/2-bs/2, self.wysokosc*0.2)
         self.bZR1.hide()
+        self.bZR1.clicked.connect(self.showData)
 
         self.tZR1 = QtWidgets.QTableWidget(self)
         self.tZR1.hide()
@@ -157,15 +161,18 @@ class oknoZaloguj(QMainWindow):
         self.bSK1.setText('Dalej')
         self.bSK1.move(self.szerokosc/2-self.bSK1.size().width()/2, self.wysokosc/2)
         self.bSK1.hide() 
+        self.bSK1.clicked.connect(self.stworzKontoDodatkoweInformacje)
 
         self.bSK2 = QtWidgets.QPushButton(self)
         self.bSK2.setText('Dodaj konto')
         self.bSK2.move(self.szerokosc/2-self.bSK2.size().width()/2, self.wysokosc*0.7)
-        self.bSK2.hide() 
+        self.bSK2.hide()
+        self.bSK2.clicked.connect(self.dodajKontoDoTabeli) 
 
         #Dodaj rekordy
         self.cbDR1 = QtWidgets.QComboBox(self)
         self.cbDR1.hide()
+        self.cbDR1.currentIndexChanged.connect(self.pokazPolaDoWypelnienia)
 
         self.lDR1 = QtWidgets.QLabel(self)
         self.lDR1.setText("Do jakiej tabeli chcesz dodac rekord?")
@@ -179,6 +186,19 @@ class oknoZaloguj(QMainWindow):
         self.bDR1.setText("Dodaj rekordy")
         self.bDR1.move(self.szerokosc/2-self.bDR1.size().width()/2, self.wysokosc*0.9)
         self.bDR1.hide()
+        self.bDR1.clicked.connect(self.dodajRekordyDoTabel)
+
+        #Usun rekordy
+        self.cbUR1 = QtWidgets.QComboBox(self)
+        self.cbUR1.hide()
+
+        self.lUR1 = QtWidgets.QLabel(self)
+        self.lUR1.setText("Z jakiej tabeli chcesz usunac rekord?")
+        self.lUR1.adjustSize()
+        l1size = self.lUR1.size()
+        l1s = l1size.width()
+        self.lUR1.move(self.szerokosc/2-l1s/2, self.wysokosc*0.1)
+        self.lUR1.hide()
 
         self.logowanie()
 
@@ -209,8 +229,11 @@ class oknoZaloguj(QMainWindow):
             passwd=haslo,
             database="test"
             )
-            global kursor
-            kursor = mydb.cursor()
+            self.kursor = mydb.cursor()
+            self.kursor.execute('show tables')
+            self.tablice = self.kursor.fetchall()
+            self.kursor1 = mydb.cursor()
+            self.kursor2 = mydb.cursor()
             self.lOL1.hide()
             self.bOL1.hide()
             self.bOL2.hide()
@@ -230,10 +253,9 @@ class oknoZaloguj(QMainWindow):
             passwd='123123123',
             database="test"
             )
-            global kursorNA
-            kursorNA = mydbNA.cursor()
-            kursorNA.execute('select pswd from '+ kto + " where nick = '"+login+"'")
-            for i in kursorNA:
+            self.kursorNA = mydbNA.cursor()
+            self.kursorNA.execute('select pswd from '+ kto + " where nick = '"+login+"'")
+            for i in self.kursorNA:
                 if i[0]==haslo:
                     self.pokazOpcjeCustomer()
 
@@ -254,7 +276,6 @@ class oknoZaloguj(QMainWindow):
         self.lSK1.show()
         self.cbSK1.show()
         self.bSK1.show()
-        self.bSK1.clicked.connect(self.stworzKontoDodatkoweInformacje)
     def stworzKontoDodatkoweInformacje(self):
         self.bSK2.show()
         self.ktoSK1 = self.cbSK1.currentText() 
@@ -272,14 +293,13 @@ class oknoZaloguj(QMainWindow):
         passwd='123123123',
         database="test"
         )
-        global kursorSK
-        kursorSK = mydbSK.cursor() 
-        kursorSK.execute('show columns from '+self.ktoSK1)
+        self.kursorSK = mydbSK.cursor() 
+        self.kursorSK.execute('show columns from '+self.ktoSK1)
         self.polaSK1 = []
         self.nazwySK1 = []
         self.nazwySK2 = []
         ile = 0
-        for i in kursorSK:
+        for i in self.kursorSK:
             self.nazwySK1.append(i[0])
             ile+=1
         self.nazwySK1.pop(0)
@@ -299,7 +319,7 @@ class oknoZaloguj(QMainWindow):
             przesuniecie+=30
 
 
-        self.bSK2.clicked.connect(self.dodajKontoDoTabeli)
+
         
     def dodajKontoDoTabeli(self):
         mozna = 1
@@ -308,27 +328,27 @@ class oknoZaloguj(QMainWindow):
                 mozna = 0
         if mozna == 1:
             if self.ktoSK1 == "customer":
-                kursorSK.execute('select customerid from customer')
+                self.kursorSK.execute('select customerid from customer')
                 indeksy = []
-                for i in kursorSK:
+                for i in self.kursorSK:
                     indeksy.append(i[0])
 
                 i=1
                 while i in indeksy:
                     i+=1
-                kursorSK.execute('insert into customer (customerid, companyname, contactName, phone, address, city, postalCode, country, nick, pswd) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), self.polaSK1[0].text(), self.polaSK1[1].text(), self.polaSK1[2].text(), self.polaSK1[3].text(), self.polaSK1[4].text(), self.polaSK1[5].text(), self.polaSK1[6].text(),self.nickSK1, self.pswdSK1))
+                self.kursorSK.execute('insert into customer (customerid, companyname, contactName, phone, address, city, postalCode, country, nick, pswd) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), self.polaSK1[0].text(), self.polaSK1[1].text(), self.polaSK1[2].text(), self.polaSK1[3].text(), self.polaSK1[4].text(), self.polaSK1[5].text(), self.polaSK1[6].text(),self.nickSK1, self.pswdSK1))
                 mydbSK.commit()  
 
             elif self.ktoSK1 == 'servicesupplier':
-                kursor.execute('select supplierid from servicesupplier')
+                self.kursor.execute('select supplierid from servicesupplier')
                 indeksy = []
-                for i in kursor:
+                for i in self.kursor:
                     indeksy.append(i[0])
 
                 i=1
                 while i in indeksy:
                     i+=1
-                kursor.execute('insert into servicesupplier (supplierId, companyName, contactName, phone, email, homePage, nick, pswd) values (%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), self.polaSK1[0].text(), self.polaSK1[1].text(), self.polaSK1[2].text(), self.polaSK1[3].text(), self.polaSK1[4].text(),self.nickSK1, self.pswdSK1))
+                self.kursor.execute('insert into servicesupplier (supplierId, companyName, contactName, phone, email, homePage, nick, pswd) values (%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), self.polaSK1[0].text(), self.polaSK1[1].text(), self.polaSK1[2].text(), self.polaSK1[3].text(), self.polaSK1[4].text(),self.nickSK1, self.pswdSK1))
                 mydb.commit()
             self.logowanie()
             for i in self.nazwySK2:
@@ -336,6 +356,7 @@ class oknoZaloguj(QMainWindow):
             for i in self.polaSK1:
                 i.hide()
             self.bSK2.hide()
+        mydbSK.close()
 #przycisk menu główne
     def przejdzDoOpcjiAdmina(self):
         for i in self.lista:
@@ -349,14 +370,13 @@ class oknoZaloguj(QMainWindow):
         self.lPOA1.show()
         self.lPOA2.show()
         self.bPOA1.show()
-        self.bPOA1.clicked.connect(self.zobaczRekordy)
-        self.bPOA2.show() 
-        self.bPOA2.clicked.connect(self.przejdzDoDodawaniaRekordow)
         self.bPOA3.show()
+        self.bPOA2.show() 
         self.lista = [self.lPOA1, self.lPOA2, self.bPOA1, self.bPOA2, self.bPOA3]
 
 #okno do ogladania rekordów - gotowe
     def zobaczRekordy(self):
+        self.tZR1.clear()
         self.setWindowTitle('Alligro <3 - Zobacz rekordy')
         self.lPOA1.hide()
         self.lPOA2.hide()
@@ -365,58 +385,58 @@ class oknoZaloguj(QMainWindow):
         self.bPOA3.hide()
         self.lZR1.show()
         self.lZR2.show()
-        kursor.execute('Show tables')
         self.cbZR1.clear()
-        for i in kursor:
+        for i in self.tablice:
             self.cbZR1.addItem(i[0])
         self.cbZR1.adjustSize()
         self.cbZR1.move(self.szerokosc/2-self.cbZR1.size().width()/2,self.wysokosc*0.08)
         self.cbZR1.show()
-        kursor.execute('show columns from category')
-        self.cbZR2.addItem('*')
-        self.columnsZR1 = 1
-        for i in kursor:
-            self.cbZR2.addItem(i[0])
-            self.columnsZR1+=1
+        #self.kursor.execute('show columns from category')
+        #self.cbZR2.addItem('*')
+        #self.columnsZR1 = 1
+        #for i in self.kursor:
+        #    self.cbZR2.addItem(i[0])
+        #    self.columnsZR1+=1
         self.cbZR2.adjustSize()
         self.cbZR2.move(self.szerokosc/2-self.cbZR2.size().width()/2,self.wysokosc*0.15)
         self.cbZR2.show()
         self.bZR1.show()
-        self.bZR1.clicked.connect(self.showData)
         self.tZR1.setGeometry(self.szerokosc*0.1,self.wysokosc*0.3,self.szerokosc*0.8, self.wysokosc*0.6)
         self.tZR1.show()
         self.tZR1.setColumnCount(1)
         self.tZR1.setRowCount(1)
         self.lista = [self.lZR1, self.lZR2, self.cbZR1, self.cbZR2, self.bZR1, self.tZR1]
-        self.cbZR1.currentIndexChanged.connect(self.updateState)
+
         
 
     def updateState(self):
         self.columnsZR2 = self.cbZR1.currentText()
         self.cbZR2.clear()
         self.cbZR2.addItem('*')
-        kursor.execute('show columns from '+ self.columnsZR2)
-        for i in kursor:
+        self.kursor.execute("show columns from "+ self.columnsZR2.strip())
+        print(self.columnsZR2+'\n\n\n')
+        for i in self.kursor:
             self.cbZR2.addItem(i[0])
+            dodane =+1
         self.cbZR2.adjustSize()
         self.cbZR2.move(self.szerokosc/2-self.cbZR2.size().width()/2,self.wysokosc*0.15)
 
     def showData(self):
         if self.cbZR2.currentText() == "*":
-            kursor.execute('show columns from '+self.cbZR1.currentText())
+            self.kursor.execute('show columns from '+self.cbZR1.currentText())
             kolumny = 0
-            for i in kursor:
+            for i in self.kursor:
                 kolumny +=1
             self.tZR1.clear()
             self.tZR1.setColumnCount(kolumny)
-            kursor.execute('Select '+ self.cbZR2.currentText()+ ' from '+ self.cbZR1.currentText())
+            self.kursor.execute('Select '+ self.cbZR2.currentText()+ ' from '+ self.cbZR1.currentText())
             wiersze = 0
-            for i in kursor:
+            for i in self.kursor:
                 wiersze+=1
             self.tZR1.setRowCount(wiersze)
             m, n =0, 0
-            kursor.execute('Select '+ self.cbZR2.currentText()+ ' from '+ self.cbZR1.currentText())
-            for i in kursor:
+            self.kursor.execute('Select '+ self.cbZR2.currentText()+ ' from '+ self.cbZR1.currentText())
+            for i in self.kursor:
                 for l in i:
                     newitem = QtWidgets.QTableWidgetItem(str(l))
                     self.tZR1.setItem(m, n, newitem)
@@ -428,14 +448,14 @@ class oknoZaloguj(QMainWindow):
         else:
             self.tZR1.clear()
             self.tZR1.setColumnCount(1)
-            kursor.execute('Select '+ self.cbZR2.currentText()+ ' from '+ self.cbZR1.currentText())
+            self.kursor.execute('Select '+ self.cbZR2.currentText()+ ' from '+ self.cbZR1.currentText())
             wiersze = 0
-            for i in kursor:
+            for i in self.kursor:
                 wiersze+=1
             self.tZR1.setRowCount(wiersze)
             m, n =0, 0
-            kursor.execute('Select '+ self.cbZR2.currentText()+ ' from '+ self.cbZR1.currentText())
-            for i in kursor:
+            self.kursor.execute('Select '+ self.cbZR2.currentText()+ ' from '+ self.cbZR1.currentText())
+            for i in self.kursor:
                 for l in i:
                     newitem = QtWidgets.QTableWidgetItem(str(l))
                     self.tZR1.setItem(m, n, newitem)
@@ -453,9 +473,9 @@ class oknoZaloguj(QMainWindow):
         self.dodajRekordy()
 
     def dodajRekordy(self):
-        kursor.execute('Show tables')
+        self.kursor1.execute('Show tables')
         self.cbDR1.clear()
-        for i in kursor:
+        for i in self.kursor1:
             self.cbDR1.addItem(i[0])
         self.cbDR1.adjustSize()
         self.cbDR1.move(self.szerokosc/2-self.cbDR1.size().width()/2,self.wysokosc*0.15)
@@ -464,15 +484,14 @@ class oknoZaloguj(QMainWindow):
         self.polaSK1 = []
         self.nazwySK1 = []
         self.nazwySK2 = []
-        self.cbDR1.currentIndexChanged.connect(self.pokazPolaDoWypelnienia)
         self.bDR1.show()
         self.lista = [self.cbDR1, self.lDR1, self.bDR1]
-        self.bDR1.clicked.connect(self.dodajRekordyDoTabel)
+        self.pokazPolaDoWypelnienia()
 
 
 
     def pokazPolaDoWypelnienia(self):
-        kursor.execute('show columns from '+self.cbDR1.currentText())
+        self.kursor1.execute('show columns from '+self.cbDR1.currentText())
         for i in self.polaSK1:
             i.hide()
         for i in self.nazwySK2:
@@ -481,7 +500,7 @@ class oknoZaloguj(QMainWindow):
         self.nazwySK1 = []
         self.polaSK1 = []
         ile = 0
-        for i in kursor:
+        for i in self.kursor1:
             self.nazwySK1.append(i[0])
             ile+=1
 
@@ -522,9 +541,9 @@ class oknoZaloguj(QMainWindow):
                 idd = 'supplier'
             else:
                 idd = self.cbDR1.currentText()
-            kursor.execute('select '+idd+'id from '+self.cbDR1.currentText())
+            self.kursor1.execute('select '+idd+'id from '+self.cbDR1.currentText())
             indeksy = []
-            for i in kursor:
+            for i in self.kursor1:
                 indeksy.append(i[0])
 
             i = 1
@@ -532,8 +551,8 @@ class oknoZaloguj(QMainWindow):
                 i+=1
             kolumny = ''
             kolumnynumer = []
-            kursor.execute('show columns from '+self.cbDR1.currentText())
-            for k in kursor:
+            self.kursor1.execute('show columns from '+self.cbDR1.currentText())
+            for k in self.kursor1:
                 kolumnynumer.append(k)
             for k in kolumnynumer[1:]:
                 kolumny = kolumny + k[0]+ ', '
@@ -542,14 +561,14 @@ class oknoZaloguj(QMainWindow):
                 wartosci = wartosci +"'" +k.text()+"'" +', '
             kolumny = kolumny[0:-2]
             wartosci = wartosci[0:-2]
-            kursor.execute('insert into '+ self.cbDR1.currentText() + ' (' +idd+'id, ' +kolumny +') values ('+str(i)+', '+wartosci+')')
+            self.kursor1.execute('insert into '+ self.cbDR1.currentText() + ' (' +idd+'id, ' +kolumny +') values ('+str(i)+', '+wartosci+')')
             #print('insert into '+ self.cbDR1.currentText() + ' (' +idd+'id, ' +kolumny +') values ('+str(i)+', '+wartosci+')')
         else:
             if self.polaSK1[6].text() == '1':
                 kolumny = ''
                 kolumnynumer = []
-                kursor.execute('show columns from '+self.cbDR1.currentText())
-                for k in kursor:
+                self.kursor1.execute('show columns from '+self.cbDR1.currentText())
+                for k in self.kursor1:
                     if k[0]!='serviceid':
                         kolumnynumer.append(k)
                 for k in kolumnynumer:
@@ -560,13 +579,13 @@ class oknoZaloguj(QMainWindow):
                         wartosci = wartosci +"'" +self.polaSK1[k].text()+"'" +', '
                 kolumny = kolumny[0:-2]
                 wartosci = wartosci[0:-2]
-                kursor.execute('insert into '+ self.cbDR1.currentText() + ' (' +kolumny +') values ('+wartosci+')')
+                self.kursor1.execute('insert into '+ self.cbDR1.currentText() + ' (' +kolumny +') values ('+wartosci+')')
                 #print('insert into '+ self.cbDR1.currentText() + ' (' +kolumny +') values ('+wartosci+')')
             if self.polaSK1[6].text() == '2':
                 kolumny = ''
                 kolumnynumer = []
-                kursor.execute('show columns from '+self.cbDR1.currentText())
-                for k in kursor:
+                self.kursor1.execute('show columns from '+self.cbDR1.currentText())
+                for k in self.kursor1:
                     if k[0]!='productid':
                         kolumnynumer.append(k)
                 for k in kolumnynumer:
@@ -577,11 +596,26 @@ class oknoZaloguj(QMainWindow):
                         wartosci = wartosci +"'" +self.polaSK1[k].text()+"'" +', '
                 kolumny = kolumny[0:-2]
                 wartosci = wartosci[0:-2]
-                kursor.execute('insert into '+ self.cbDR1.currentText() + ' (' +kolumny +') values ('+wartosci+')')
-                print('insert into '+ self.cbDR1.currentText() + ' (' +kolumny +') values ('+wartosci+')')
+                self.kursor1.execute('insert into '+ self.cbDR1.currentText() + ' (' +kolumny +') values ('+wartosci+')')
+                #print('insert into '+ self.cbDR1.currentText() + ' (' +kolumny +') values ('+wartosci+')')
         mydb.commit()
 
+    #okno usuwania rekordow
+    def przejdzDoUsuwaniaRekordow(self):
+        for i in self.lista:
+            i.hide()
+        self.usunRekordy()
 
+    def usunRekordy(self):
+        self.kursor2.execute('Show tables')
+        self.cbUR1.clear()
+        for i in self.kursor2:
+            self.cbUR1.addItem(i[0])
+        self.cbUR1.adjustSize()
+        self.cbUR1.move(self.szerokosc/2-self.cbUR1.size().width()/2,self.wysokosc*0.15)
+        self.cbUR1.show()
+        self.lUR1.show()
+        self.lista = [self.cbUR1, self.lUR1]
 
             
         
