@@ -191,6 +191,7 @@ class oknoZaloguj(QMainWindow):
         #Usun rekordy
         self.cbUR1 = QtWidgets.QComboBox(self)
         self.cbUR1.hide()
+        self.cbUR1.currentIndexChanged.connect(self.pokazPolaZKotrychUsuwamy)
 
         self.lUR1 = QtWidgets.QLabel(self)
         self.lUR1.setText("Z jakiej tabeli chcesz usunac rekord?")
@@ -199,6 +200,20 @@ class oknoZaloguj(QMainWindow):
         l1s = l1size.width()
         self.lUR1.move(self.szerokosc/2-l1s/2, self.wysokosc*0.1)
         self.lUR1.hide()
+
+        self.lUR2 = QtWidgets.QLabel(self)
+        self.lUR2.setText("Podaj wartosc dzieki ktorej mamy znalezc rekord ktory chcesz usunac")
+        self.lUR2.adjustSize()
+        l1size = self.lUR2.size()
+        l1s = l1size.width()
+        self.lUR2.move(self.szerokosc/2-l1s/2, self.wysokosc*0.23)
+        self.lUR2.hide()
+
+        self.bUR1 = QtWidgets.QPushButton(self)
+        self.bUR1.setText('Usun rekord')
+        self.bUR1.move(self.szerokosc/2-self.bUR1.size().width()/2, self.wysokosc*0.8)
+        self.bUR1.hide() 
+        self.bUR1.clicked.connect(self.usunRekord)
 
         self.logowanie()
 
@@ -414,7 +429,6 @@ class oknoZaloguj(QMainWindow):
         self.cbZR2.clear()
         self.cbZR2.addItem('*')
         self.kursor.execute("show columns from "+ self.columnsZR2.strip())
-        print(self.columnsZR2+'\n\n\n')
         for i in self.kursor:
             self.cbZR2.addItem(i[0])
             dodane =+1
@@ -607,16 +621,66 @@ class oknoZaloguj(QMainWindow):
         self.usunRekordy()
 
     def usunRekordy(self):
-        self.kursor2.execute('Show tables')
         self.cbUR1.clear()
-        for i in self.kursor2:
+        self.polaSK1 = []
+        self.nazwySK1 = []
+        self.nazwySK2 = []
+        self.lista = [self.cbUR1, self.lUR1, self.lUR2, self.bUR1]
+        for i in self.tablice:
             self.cbUR1.addItem(i[0])
         self.cbUR1.adjustSize()
         self.cbUR1.move(self.szerokosc/2-self.cbUR1.size().width()/2,self.wysokosc*0.15)
         self.cbUR1.show()
         self.lUR1.show()
-        self.lista = [self.cbUR1, self.lUR1]
+        self.lUR2.show()
+        self.bUR1.show()
 
+    def pokazPolaZKotrychUsuwamy(self):
+        self.kursor1.execute('show columns from '+self.cbUR1.currentText())
+        for i in self.polaSK1:
+            i.hide()
+        for i in self.nazwySK2:
+            i.hide()
+        self.nazwySK2 = []
+        self.nazwySK1 = []
+        self.polaSK1 = []
+        ile = 0
+        for i in self.kursor1:
+            self.nazwySK1.append(i[0])
+            ile+=1 
+        for i in range(ile):
+            self.polaSK1.append(QtWidgets.QLineEdit(self))
+            self.nazwySK2.append(QtWidgets.QLabel(self))
+        przesuniecie = 0
+        for i in self.polaSK1:
+            i.move(self.szerokosc/2-i.size().width()/2, self.wysokosc*0.3+przesuniecie)
+            i.show()
+            przesuniecie+=30
+        przesuniecie = 0
+        for i in range(len(self.nazwySK2)):
+            self.nazwySK2[i].setText(self.nazwySK1[i])
+            self.nazwySK2[i].adjustSize()
+            self.nazwySK2[i].move(self.szerokosc/2-self.nazwySK2[i].size().width()-self.polaSK1[i].size().width()/2-5, self.wysokosc*0.3+przesuniecie)
+            self.nazwySK2[i].show()
+            przesuniecie+=30
+        
+        for i in self.polaSK1:
+            self.lista.append(i)
+        for i in self.nazwySK2:
+            self.lista.append(i)
+
+    def usunRekord(self):
+        zt = -1
+        ktore = 0
+        for i in self.polaSK1:
+            if len(i.text())>0:
+                zt = i.text()
+                break
+            ktore+=1
+        #print("delete from "+ self.cbUR1.currentText() + " where '"+ self.nazwySK2[ktore].text() + "' = '" + zt + "'" ) 
+        if zt != -1:
+            self.kursor1.execute("delete from "+ self.cbUR1.currentText() + " where "+ self.nazwySK2[ktore].text() + " = '" + zt + "'" )
+            mydb.commit()
             
         
 
