@@ -1,7 +1,7 @@
 from PyQt5.QtGui import QFont
 import mysql.connector
 from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtWidgets import QApplication, QComboBox, QMainWindow
+from PyQt5.QtWidgets import QApplication, QComboBox, QMainWindow, QMessageBox
 import sys
 
 
@@ -20,13 +20,33 @@ class oknoZaloguj(QMainWindow):
 
 #inicjacja poczatkowych obiektow
     def initUI(self):
-        #przycisk home
-        self.listaDoUsuniecia = []
-        self.bPH1 = QtWidgets.QPushButton(self)
-        self.bPH1.setText('Menu główne')
-        self.bPH1.move(self.szerokosc*0.8, self.wysokosc*0.1)
-        self.bPH1.clicked.connect(self.przejdzDoOpcjiAdmina)
-        self.bPH1.hide() 
+        self.lista = []
+        #przycisk home admin
+        self.bPHA1 = QtWidgets.QPushButton(self)
+        self.bPHA1.setText('Menu główne')
+        self.bPHA1.move(self.szerokosc*0.8, self.wysokosc*0.1)
+        self.bPHA1.clicked.connect(self.przejdzDoOpcjiAdmina)
+        self.bPHA1.hide() 
+
+        #przycisk home klient
+        self.bPHK1 = QtWidgets.QPushButton(self)
+        self.bPHK1.setText('Menu główne')
+        self.bPHK1.move(self.szerokosc*0.8, self.wysokosc*0.1)
+        self.bPHK1.clicked.connect(self.przejdzDoOpcjiCustomer)
+        self.bPHK1.hide()
+
+        #Przycisk anuluj
+        self.bPA1 = QtWidgets.QPushButton(self)
+        self.bPA1.setText('Anuluj')
+        self.bPA1.move(self.szerokosc*0.8, self.wysokosc*0.1)
+        self.bPA1.clicked.connect(self.przejdzDoLogowania)
+        self.bPA1.hide()
+
+        #Popup window
+        self.popUp = QtWidgets.QMessageBox(self)
+        self.popUpKUP = QtWidgets.QMessageBox(self)
+        self.popUpKUP.buttonClicked.connect(self.naPewnoChceKupic)
+        self.popUpKoniec = QtWidgets.QMessageBox(self)
 
         #Ekran logowania
         self.lOL1 = QtWidgets.QLabel(self)
@@ -215,10 +235,83 @@ class oknoZaloguj(QMainWindow):
         self.bUR1.hide() 
         self.bUR1.clicked.connect(self.usunRekord)
 
+
+
+        #ekran panelu klienta
+
+        self.lPOK1 = QtWidgets.QLabel(self)
+        self.lPOK1.setText("Co chcesz zrobic?")
+        self.lPOK1.adjustSize()
+        l1size = self.lPOK1.size()
+        l1s = l1size.width()
+        self.lPOK1.move(self.szerokosc/2-l1s/2, self.wysokosc*0.4)
+        self.lPOK1.hide()
+
+        self.lPOK2 = QtWidgets.QLabel(self)
+        self.lPOK2.setText("Jesteś w panelu Klienta")
+        self.lPOK2.setFont(QFont('Arial', 20))
+        self.lPOK2.adjustSize()
+        l2s = self.lPOK2.size().width()
+        self.lPOK2.move(self.szerokosc/2-l2s/2, self.wysokosc*0.2)
+        self.lPOK2.hide()
+
+        self.bPOK1 = QtWidgets.QPushButton(self)
+        self.bPOK1.setText("Złóż zamówienie")
+        self.bPOK1.adjustSize()
+        self.bPOK1.hide()
+
+        self.bPOK2 = QtWidgets.QPushButton(self)
+        self.bPOK2.setText("Zobacz zamówienia")
+        self.bPOK2.adjustSize()
+        self.bPOK2.hide()
+
+        self.bPOK3 = QtWidgets.QPushButton(self)
+        self.bPOK3.setText("Twoje konto")
+        self.bPOK3.adjustSize()
+        self.bPOK3.hide()
+
+        self.bPOK1.move(self.szerokosc/2-self.bPOK1.size().width()-self.bPOK2.size().width()/2, self.wysokosc*0.6)
+        self.bPOK2.move(self.szerokosc/2-self.bPOK2.size().width()/2, self.wysokosc*0.6)
+        self.bPOK3.move(self.szerokosc/2+self.bPOK2.size().width()/2, self.wysokosc*0.6)
+        self.bPOK1.clicked.connect(self.przejdzDoPrzegladaniaproduktow)
+        #self.bPOA2.clicked.connect(self.przejdzDoDodawaniaRekordow)
+        #self.bPOA3.clicked.connect(self.przejdzDoUsuwaniaRekordow)
+
+        #Ekran ogladania produktów i usług
+        self.tPU1 = QtWidgets.QTableWidget(self)
+        self.tPU1.hide()
+
+        self.cbPU1 = QtWidgets.QComboBox(self)
+        self.cbPU1.hide()
+        self.cbPU1.addItem('product')
+        self.cbPU1.addItem('service')
+        self.cbPU1.move(self.szerokosc/2-self.cbPU1.size().width()/2, self.wysokosc*0.1)
+        self.cbPU1.currentTextChanged.connect(self.przegladanieProduktow)
+
+        self.tPU1 = QtWidgets.QTableWidget(self)
+        self.tPU1.hide()
+        self.tPU1.doubleClicked.connect(self.wybraneDane)
+
+        self.bPU1 = QtWidgets.QPushButton(self)
+        self.bPU1.setText("Szukaj")
+        self.bPU1.adjustSize()
+        self.bPU1.hide()
+        self.bPU1.clicked.connect(self.przejdzDoSzukaniaProduktow)
+        self.bPU1.move(self.szerokosc/2-self.bPU1.size().width()/2, self.wysokosc*0.93)
+
         self.logowanie()
 
 
 
+    def przejdzDoLogowania(self):
+        for i in self.lista:
+            i.hide()
+        self.lista = []
+        for i in self.polaSK1:
+            i.hide()
+        for i in self.nazwySK2:
+            i.hide()
+        self.logowanie()
         #zainicjuj pierwszy ekran
     def logowanie(self):
         self.setWindowTitle('Alligro <3 - logowanie')
@@ -227,36 +320,38 @@ class oknoZaloguj(QMainWindow):
         self.bOL2.show()
         self.itOL1.show()
         self.itOL2.show()
-        self.cbOL1.show() 
+        self.cbOL1.show()
+        self.bPA1.hide() 
 
 
-#okno logowania - dodac stworz konto i oblusge bledow
+#okno logowania
     def zaloguj(self):
         if self.cbOL1.currentText() == 'admin':
             login = self.itOL1.text()
             haslo = self.itOL2.text()
-            login = 'root'
-            haslo = '123123123'
-            global mydb
-            mydb = mysql.connector.connect(
-            host="localhost",
-            user=login,
-            passwd=haslo,
-            database="test"
-            )
-            self.kursor = mydb.cursor()
-            self.kursor.execute('show tables')
-            self.tablice = self.kursor.fetchall()
-            self.kursor1 = mydb.cursor()
-            self.kursor2 = mydb.cursor()
-            self.lOL1.hide()
-            self.bOL1.hide()
-            self.bOL2.hide()
-            self.itOL1.hide()
-            self.itOL2.hide()
-            self.cbOL1.hide() 
-            self.bPH1.show()
-            self.pokazOpcjeAdmin()
+            if login == 'root' and haslo == '123123123':
+                global mydb
+                mydb = mysql.connector.connect(
+                host="localhost",
+                user=login,
+                passwd=haslo,
+                database="test"
+                )
+                self.kursor = mydb.cursor()
+                self.kursor.execute('show tables')
+                self.tablice = self.kursor.fetchall()
+                self.kursor1 = mydb.cursor()
+                self.kursor2 = mydb.cursor()
+                self.lOL1.hide()
+                self.bOL1.hide()
+                self.bOL2.hide()
+                self.itOL1.hide()
+                self.itOL2.hide()
+                self.cbOL1.hide() 
+                self.bPHA1.show()
+                self.pokazOpcjeAdmin()
+            else:
+                self.showPopup()
         else:
             login = self.itOL1.text()
             haslo = self.itOL2.text()
@@ -270,11 +365,29 @@ class oknoZaloguj(QMainWindow):
             )
             self.kursorNA = mydbNA.cursor()
             self.kursorNA.execute('select pswd from '+ kto + " where nick = '"+login+"'")
+            znaleziony = 0
             for i in self.kursorNA:
                 if i[0]==haslo:
                     self.pokazOpcjeCustomer()
+                    znaleziony = 1
+                    self.lOL1.hide()
+                    self.bOL1.hide()
+                    self.bOL2.hide()
+                    self.itOL1.hide()
+                    self.itOL2.hide()
+                    self.cbOL1.hide()
+                    break
+            if znaleziony == 0:
+                self.showPopup()
 
 
+    def showPopup(self):
+        tytuł = "Sprwadź dane!"
+        wiadomosc = "Podałeś błędny login lub hasło"
+        self.popUp.setWindowTitle(tytuł)
+        self.popUp.setText(wiadomosc)
+        self.popUp.setIcon(QMessageBox.Critical)
+        x = self.popUp.exec_()
             
 
 #okno tworzenia konta
@@ -285,12 +398,16 @@ class oknoZaloguj(QMainWindow):
         self.itOL1.hide()
         self.itOL2.hide()
         self.cbOL1.hide() 
-
+        self.polaSK1 = []
+        self.nazwySK1 = []
+        self.nazwySK2 = []
         self.itSK1.show()
         self.itSK2.show()
         self.lSK1.show()
         self.cbSK1.show()
         self.bSK1.show()
+        self.bPA1.show()
+        self.lista = [self.bSK2, self.itSK1, self.itSK2, self.lSK1, self.cbSK1, self.bSK1, self.bPA1]
     def stworzKontoDodatkoweInformacje(self):
         self.bSK2.show()
         self.ktoSK1 = self.cbSK1.currentText() 
@@ -301,18 +418,14 @@ class oknoZaloguj(QMainWindow):
         self.lSK1.hide()
         self.cbSK1.hide()
         self.bSK1.hide()
-        global mydbSK
-        mydbSK = mysql.connector.connect(
+        self.mydbSK = mysql.connector.connect(
         host="localhost",
         user='root',
         passwd='123123123',
         database="test"
         )
-        self.kursorSK = mydbSK.cursor() 
+        self.kursorSK = self.mydbSK.cursor() 
         self.kursorSK.execute('show columns from '+self.ktoSK1)
-        self.polaSK1 = []
-        self.nazwySK1 = []
-        self.nazwySK2 = []
         ile = 0
         for i in self.kursorSK:
             self.nazwySK1.append(i[0])
@@ -352,26 +465,26 @@ class oknoZaloguj(QMainWindow):
                 while i in indeksy:
                     i+=1
                 self.kursorSK.execute('insert into customer (customerid, companyname, contactName, phone, address, city, postalCode, country, nick, pswd) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), self.polaSK1[0].text(), self.polaSK1[1].text(), self.polaSK1[2].text(), self.polaSK1[3].text(), self.polaSK1[4].text(), self.polaSK1[5].text(), self.polaSK1[6].text(),self.nickSK1, self.pswdSK1))
-                mydbSK.commit()  
+                self.mydbSK.commit()  
 
             elif self.ktoSK1 == 'servicesupplier':
-                self.kursor.execute('select supplierid from servicesupplier')
+                self.kursorSK.execute('select supplierid from servicesupplier')
                 indeksy = []
-                for i in self.kursor:
+                for i in self.kursorSK:
                     indeksy.append(i[0])
 
                 i=1
                 while i in indeksy:
                     i+=1
-                self.kursor.execute('insert into servicesupplier (supplierId, companyName, contactName, phone, email, homePage, nick, pswd) values (%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), self.polaSK1[0].text(), self.polaSK1[1].text(), self.polaSK1[2].text(), self.polaSK1[3].text(), self.polaSK1[4].text(),self.nickSK1, self.pswdSK1))
-                mydb.commit()
+                self.kursorSK.execute('insert into servicesupplier (supplierId, companyName, contactName, phone, email, homePage, nick, pswd) values (%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), self.polaSK1[0].text(), self.polaSK1[1].text(), self.polaSK1[2].text(), self.polaSK1[3].text(), self.polaSK1[4].text(),self.nickSK1, self.pswdSK1))
+                self.mydbSK.commit()
             self.logowanie()
             for i in self.nazwySK2:
                 i.hide()
             for i in self.polaSK1:
                 i.hide()
             self.bSK2.hide()
-        mydbSK.close()
+        self.mydbSK.close()
 #przycisk menu główne
     def przejdzDoOpcjiAdmina(self):
         for i in self.lista:
@@ -381,7 +494,7 @@ class oknoZaloguj(QMainWindow):
 #okno wyboru opcji - dodac wyloguj i konto
     def pokazOpcjeAdmin(self):
         self.setWindowTitle('Alligro <3 - Panel Administratora')
-        self.bPH1.show() 
+        self.bPHA1.show() 
         self.lPOA1.show()
         self.lPOA2.show()
         self.bPOA1.show()
@@ -406,12 +519,6 @@ class oknoZaloguj(QMainWindow):
         self.cbZR1.adjustSize()
         self.cbZR1.move(self.szerokosc/2-self.cbZR1.size().width()/2,self.wysokosc*0.08)
         self.cbZR1.show()
-        #self.kursor.execute('show columns from category')
-        #self.cbZR2.addItem('*')
-        #self.columnsZR1 = 1
-        #for i in self.kursor:
-        #    self.cbZR2.addItem(i[0])
-        #    self.columnsZR1+=1
         self.cbZR2.adjustSize()
         self.cbZR2.move(self.szerokosc/2-self.cbZR2.size().width()/2,self.wysokosc*0.15)
         self.cbZR2.show()
@@ -684,16 +791,164 @@ class oknoZaloguj(QMainWindow):
             
         
 
-
+    def przejdzDoOpcjiCustomer(self):
+        for i in self.lista:
+            i.hide()
+        self.lista = []
+        self.pokazOpcjeCustomer()
     def pokazOpcjeCustomer(self):
-        pass
+        self.setWindowTitle('Alligro <3 - Panel Klienta')
+        self.bPOK1.show()
+        self.bPOK2.show()
+        self.bPOK3.show()
+        self.bPHK1.show()
+        self.lPOK1.show()
+        self.lPOK2.show()
+        self.napisyPP = []
+        self.polaPP = []
+        self.lista = [self.bPOK1, self.bPOK2, self.bPOK3, self.lPOK2, self.lPOK1]
 
+
+    def przejdzDoPrzegladaniaproduktow(self):
+        for i in self.lista:
+            i.hide()
+        self.lista = []
+        self.przegladanieProduktow()
+        self.cbPU1.show()
+        self.tPU1.show()
+        self.bPU1.show()
+        self.tPU1.setGeometry(self.szerokosc*0.1,self.wysokosc*0.3,self.szerokosc*0.8, self.wysokosc*0.6)
+        self.tPU1.setColumnCount(1)
+        self.tPU1.setRowCount(1)
+        self.przegladanieProduktow()
+
+    def przegladanieProduktow(self):
+        self.kursorNA.execute('show columns from '+ self.cbPU1.currentText())
+        for i in self.polaPP:
+            i.hide()
+        for i in self.napisyPP:
+            i.hide()
+        self.napisyPP = []
+        self.polaPP = []
+        kolumny = []
+        for i in self.kursorNA:
+            kolumny.append(i[0])
+        for i in kolumny:
+            self.polaPP.append(QtWidgets.QLineEdit(self))
+            self.napisyPP.append(QtWidgets.QLabel(self))
+        for i in range(len(self.polaPP)):
+            self.polaPP[i].move(self.szerokosc/2-(len(kolumny)*self.polaPP[i].size().width()/2)+(i*self.polaPP[i].size().width()), self.wysokosc*0.2)
+            self.polaPP[i].show()
+        for i in range(len(self.napisyPP)):
+            self.napisyPP[i].move(self.szerokosc/2-(len(kolumny)*self.napisyPP[i].size().width()/2)+(i*self.napisyPP[i].size().width()), self.wysokosc*0.15)
+            self.napisyPP[i].setText(kolumny[i])
+            self.napisyPP[i].show()
+
+        self.kursorNA.execute('show columns from '+self.cbPU1.currentText())
+        kolumny = 0
+        for i in self.kursorNA:
+            kolumny +=1
+        self.tPU1.clear()
+        self.tPU1.setColumnCount(kolumny)
+        self.kursorNA.execute('Select * from '+ self.cbPU1.currentText())
+        wiersze = 0
+        for i in self.kursorNA:
+            wiersze+=1
+        self.tPU1.setRowCount(wiersze)
+        m, n =0, 0
+        self.kursorNA.execute('Select * from '+ self.cbPU1.currentText())
+        for i in self.kursorNA:
+            for l in i:
+                newitem = QtWidgets.QTableWidgetItem(str(l))
+                self.tPU1.setItem(m, n, newitem)
+                n+=1
+            m+=1
+            n = 0
+        self.tPU1.resizeColumnsToContents()
+        self.tPU1.resizeRowsToContents()
+
+        for i in self.polaPP:
+            self.lista.append(i)
+        for i in self.napisyPP:
+            self.lista.append(i)
+        self.lista.append(self.cbPU1)
+        self.lista.append(self.tPU1)
+        self.lista.append(self.bPU1)
+
+    def przejdzDoSzukaniaProduktow(self):
+        self.znalezionePP = -1
+        for i in range(len(self.polaPP)):
+            if self.polaPP[i].text() != '':
+                self.znalezionePP = i
+                break
+        if self.znalezionePP == -1:
+            self.przejdzDoPrzegladaniaproduktow()
+        else:
+            self.pokazWyszukaneRekordy()
+    
+    def pokazWyszukaneRekordy(self):       
+        self.kursorNA.execute('show columns from '+self.cbPU1.currentText())
+        kolumny = 0
+        for i in self.kursorNA:
+            kolumny +=1
+        self.tPU1.clear()
+        self.tPU1.setColumnCount(kolumny)
+        self.kursorNA.execute('select * from '+self.cbPU1.currentText() + ' where ' + self.napisyPP[self.znalezionePP].text() + ' = ' + self.polaPP[self.znalezionePP].text())
+        wiersze = 0
+        for i in self.kursorNA:
+            wiersze+=1
+        self.tPU1.setRowCount(wiersze)
+        m, n =0, 0
+        self.kursorNA.execute('select * from '+self.cbPU1.currentText() + ' where ' + self.napisyPP[self.znalezionePP].text() + ' = ' + self.polaPP[self.znalezionePP].text())
+        for i in self.kursorNA:
+            for l in i:
+                newitem = QtWidgets.QTableWidgetItem(str(l))
+                self.tPU1.setItem(m, n, newitem)
+                n+=1
+            m+=1
+            n = 0
+        self.tPU1.resizeColumnsToContents()
+        self.tPU1.resizeRowsToContents()
+
+    def wybraneDane(self):
+        self.rowKUP = 0
+        for idx in self.tPU1.selectionModel().selectedIndexes():
+            self.rowKUP = idx.row()
+        self.idtegoczegos = self.tPU1.item(self.rowKUP, 0).text()
+        self.showPopupKUP()
+
+    def showPopupKUP(self):
+        tytuł = "Kupowanie <3"
+        wiadomosc = "Czy na pewno chcesz kupić ten przedmiot?"
+        self.popUpKUP.setWindowTitle(tytuł)
+        self.popUpKUP.setText(wiadomosc)
+        self.popUpKUP.setIcon(QMessageBox.Question)
+        self.popUpKUP.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
+        x = self.popUpKUP.exec_()
+
+    def showPopupKoniecProduktu(self):
+        tytuł = "Skończyło się :/"
+        wiadomosc = "Niestety produkt który próbujesz kupić się skończył"
+        self.popUpKoniec.setWindowTitle(tytuł)
+        self.popUpKoniec.setText(wiadomosc)
+        self.popUpKoniec.setIcon(QMessageBox.Warning)
+        x = self.popUpKoniec.exec_()
+
+    def naPewnoChceKupic(self, i):
+
+        if i.text() != '&No':
+            print('No to dodaje')
+            if self.cbPU1.currentText() == 'product':
+                self.kursorNA.execute("select instock from product where productid = " + self.idtegoczegos)
+                ilezostalo = self.kursorNA.fetchone()
+                ilezostalo = ilezostalo[0]
+                if ilezostalo == 0:
+                    self.showPopupKoniecProduktu()
 
 
         
-
-
-
+        
+    
 
 
 
