@@ -284,7 +284,7 @@ class oknoZaloguj(QMainWindow):
         self.bPOK2.move(self.szerokosc/2-self.bPOK2.size().width()/2, self.wysokosc*0.6)
         self.bPOK3.move(self.szerokosc/2+self.bPOK2.size().width()/2, self.wysokosc*0.6)
         self.bPOK1.clicked.connect(self.przejdzDoPrzegladaniaproduktow)
-        #self.bPOA2.clicked.connect(self.przejdzDoDodawaniaRekordow)
+        self.bPOK2.clicked.connect(self.przejdzDoOgladaniaZamowien)
         #self.bPOA3.clicked.connect(self.przejdzDoUsuwaniaRekordow)
 
         #Ekran ogladania produktów i usług
@@ -308,6 +308,10 @@ class oknoZaloguj(QMainWindow):
         self.bPU1.hide()
         self.bPU1.clicked.connect(self.przejdzDoSzukaniaProduktow)
         self.bPU1.move(self.szerokosc/2-self.bPU1.size().width()/2, self.wysokosc*0.93)
+
+        #Ekran ogladania wlasnych zamowien
+        self.tZZ1 = QtWidgets.QTableWidget(self)
+        self.tZZ1.hide()
 
         self.logowanie()
 
@@ -399,7 +403,6 @@ class oknoZaloguj(QMainWindow):
                 self.kursorNA.execute("select pswd, customerid from customer where nick = '"+login+"'")
                 znaleziony = 0
                 for i in self.kursorNA:
-                    print(i[1])
                     if i[0]==haslo:
                         self.pokazOpcjeCustomer()
                         znaleziony = 1
@@ -1037,6 +1040,16 @@ class oknoZaloguj(QMainWindow):
                     kolejka = ("call dodajDetaleZamowienia (%s, %s,%s, %s,%s, %s,'%s')")
                     self.kursorNA.execute(kolejka, (str(i), self.idcustomera, random.choice(listapracownikow), random.choice(listadostawcow), 3, self.idtegoczegos, 2))
                     mydbNA.commit()
+
+    #ogladanie zamowien klienta
+    def przejdzDoOgladaniaZamowien(self):
+        for i in self.lista:
+            i.hide()
+        self.lista = []
+        self.zobaczMojeZamowienia()
+    def zobaczMojeZamowienia(self):
+        pass
+
 
 
         
