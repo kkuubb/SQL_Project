@@ -285,7 +285,7 @@ class oknoZaloguj(QMainWindow):
         self.bPOK3.move(self.szerokosc/2+self.bPOK2.size().width()/2, self.wysokosc*0.6)
         self.bPOK1.clicked.connect(self.przejdzDoPrzegladaniaproduktow)
         self.bPOK2.clicked.connect(self.przejdzDoOgladaniaZamowien)
-        #self.bPOA3.clicked.connect(self.przejdzDoUsuwaniaRekordow)
+        self.bPOK3.clicked.connect(self.przejdzDoPrzegladaniaDanychKlient)
 
         #Ekran ogladania produktów i usług
         self.tPU1 = QtWidgets.QTableWidget(self)
@@ -309,9 +309,29 @@ class oknoZaloguj(QMainWindow):
         self.bPU1.clicked.connect(self.przejdzDoSzukaniaProduktow)
         self.bPU1.move(self.szerokosc/2-self.bPU1.size().width()/2, self.wysokosc*0.93)
 
-        #Ekran ogladania wlasnych zamowien
+        #Ekran ogladania wlasnych zamowien klient
         self.tZZ1 = QtWidgets.QTableWidget(self)
         self.tZZ1.hide()
+
+        self.lZZ1 = QtWidgets.QLabel(self)
+        self.lZZ1.setText("Twoje zamowienia")
+        self.lZZ1.setFont(QFont('Arial', 20))
+        self.lZZ1.adjustSize()
+        l1size = self.lZZ1.size()
+        l1s = l1size.width()
+        self.lZZ1.move(self.szerokosc/2-l1s/2, self.wysokosc*0.2)
+        self.lZZ1.hide()
+
+        #ekran ogladania wlasnych danych klient
+        self.lWD1 = QtWidgets.QLabel(self)
+        self.lWD1.setText("Twoje dane")
+        self.lWD1.setFont(QFont('Arial', 20))
+        self.lWD1.adjustSize()
+        l1size = self.lWD1.size()
+        l1s = l1size.width()
+        self.lWD1.move(self.szerokosc/2-l1s/2, self.wysokosc*0.2)
+        self.lWD1.hide()
+
 
         self.logowanie()
 
@@ -399,6 +419,7 @@ class oknoZaloguj(QMainWindow):
             )
             self.listapolaczen.append(mydbNA)
             self.kursorNA = mydbNA.cursor()
+            self.kursorNAA = mydbNA.cursor()
             if kto == "customer":
                 self.kursorNA.execute("select pswd, customerid from customer where nick = '"+login+"'")
                 znaleziony = 0
@@ -500,6 +521,9 @@ class oknoZaloguj(QMainWindow):
         mozna = 1
         for i in self.polaSK1:
             if i.text() == '':
+                mozna = 0
+        if self.ktoSK1 == "customer":
+            if not isinstance(self.polaSK1[5].text(), int):
                 mozna = 0
         if mozna == 1:
             if self.ktoSK1 == "customer":
@@ -847,6 +871,20 @@ class oknoZaloguj(QMainWindow):
         for i in self.lista:
             i.hide()
         self.lista = []
+        for i in self.listapolaczen:
+            i.close()
+        self.listapolaczen = []
+        global mydbNA
+        mydbNA = mysql.connector.connect(
+        host="localhost",
+        user='root',
+        passwd='123123123',
+        database="test"
+        )
+        self.listapolaczen.append(mydbNA)
+        self.kursorNA = mydbNA.cursor()
+        self.kursorNAA = mydbNA.cursor()
+        
         self.pokazOpcjeCustomer()
     def pokazOpcjeCustomer(self):
         self.setWindowTitle('Alligro <3 - Panel Klienta')
@@ -882,18 +920,18 @@ class oknoZaloguj(QMainWindow):
             i.hide()
         self.napisyPP = []
         self.polaPP = []
-        kolumny = []
+        self.kolumnyxx = []
         for i in self.kursorNA:
-            kolumny.append(i[0])
-        for i in kolumny:
+            self.kolumnyxx.append(i[0])
+        for i in self.kolumnyxx:
             self.polaPP.append(QtWidgets.QLineEdit(self))
             self.napisyPP.append(QtWidgets.QLabel(self))
         for i in range(len(self.polaPP)):
-            self.polaPP[i].move(self.szerokosc/2-(len(kolumny)*self.polaPP[i].size().width()/2)+(i*self.polaPP[i].size().width()), self.wysokosc*0.2)
+            self.polaPP[i].move(self.szerokosc/2-(len(self.kolumnyxx)*self.polaPP[i].size().width()/2)+(i*self.polaPP[i].size().width()), self.wysokosc*0.2)
             self.polaPP[i].show()
         for i in range(len(self.napisyPP)):
-            self.napisyPP[i].move(self.szerokosc/2-(len(kolumny)*self.napisyPP[i].size().width()/2)+(i*self.napisyPP[i].size().width()), self.wysokosc*0.15)
-            self.napisyPP[i].setText(kolumny[i])
+            self.napisyPP[i].move(self.szerokosc/2-(len(self.kolumnyxx)*self.napisyPP[i].size().width()/2)+(i*self.napisyPP[i].size().width()), self.wysokosc*0.15)
+            self.napisyPP[i].setText(self.kolumnyxx[i])
             self.napisyPP[i].show()
 
         self.kursorNA.execute('show columns from '+self.cbPU1.currentText())
@@ -916,7 +954,7 @@ class oknoZaloguj(QMainWindow):
                 n+=1
             m+=1
             n = 0
-        self.tPU1.setHorizontalHeaderLabels(kolumny)
+        self.tPU1.setHorizontalHeaderLabels(self.kolumnyxx)
         self.tPU1.resizeColumnsToContents()
         self.tPU1.resizeRowsToContents()
 
@@ -946,13 +984,13 @@ class oknoZaloguj(QMainWindow):
             kolumny +=1
         self.tPU1.clear()
         self.tPU1.setColumnCount(kolumny)
-        self.kursorNA.execute('select * from '+self.cbPU1.currentText() + ' where ' + self.napisyPP[self.znalezionePP].text() + ' = ' + self.polaPP[self.znalezionePP].text())
+        self.kursorNA.execute('select * from '+self.cbPU1.currentText() + ' where ' + self.napisyPP[self.znalezionePP].text() + " = '" + self.polaPP[self.znalezionePP].text()+"'")
         wiersze = 0
         for i in self.kursorNA:
             wiersze+=1
         self.tPU1.setRowCount(wiersze)
         m, n =0, 0
-        self.kursorNA.execute('select * from '+self.cbPU1.currentText() + ' where ' + self.napisyPP[self.znalezionePP].text() + ' = ' + self.polaPP[self.znalezionePP].text())
+        self.kursorNA.execute('select * from '+self.cbPU1.currentText() + ' where ' + self.napisyPP[self.znalezionePP].text() + " = '" + self.polaPP[self.znalezionePP].text()+"'")
         for i in self.kursorNA:
             for l in i:
                 newitem = QtWidgets.QTableWidgetItem(str(l))
@@ -960,6 +998,7 @@ class oknoZaloguj(QMainWindow):
                 n+=1
             m+=1
             n = 0
+        self.tPU1.setHorizontalHeaderLabels(self.kolumnyxx)
         self.tPU1.resizeColumnsToContents()
         self.tPU1.resizeRowsToContents()
 
@@ -1048,7 +1087,98 @@ class oknoZaloguj(QMainWindow):
         self.lista = []
         self.zobaczMojeZamowienia()
     def zobaczMojeZamowienia(self):
-        pass
+        self.lista = [self.tZZ1, self.lZZ1]
+        self.lZZ1.show()
+        numeryzamowien = []
+        zamowienia = []
+        kolejka = ("call zobaczZamowienia(%s, %s)")
+        self.kursorNAA.execute('select orderid from orders')
+        for l in self.kursorNAA:
+            numeryzamowien.append(l[0])
+        for i in numeryzamowien:
+            mydbNA = mysql.connector.connect(
+            host="localhost",
+            user='root',
+            passwd='123123123',
+            database="test"
+            )
+            self.listapolaczen.append(mydbNA)
+            self.kursorNA = mydbNA.cursor()
+            self.kursorNAA = mydbNA.cursor()
+            self.kursorNAA.execute(kolejka, (self.idcustomera, str(i)))
+            for k in self.kursorNAA:
+                zamowienia.append(k)
+            mydbNA.close()
+        self.tZZ1.setColumnCount(9)
+        self.tZZ1.setRowCount(len(zamowienia))
+        self.tZZ1.setGeometry(self.szerokosc*0.1,self.wysokosc*0.3,self.szerokosc*0.8, self.wysokosc*0.6)
+        m =0
+        n =0
+        for i in zamowienia:
+            for k in i:
+                newitem = QtWidgets.QTableWidgetItem(str(k))
+                self.tZZ1.setItem(m, n, newitem)
+                n+=1
+            m+=1
+            n = 0
+        kolumny = ['id produktu/uslugi', 'Nazwa/Typ produktu', 'Ilosc', "Cena", "Pracownik odpowiedzialny za zamówienie", 'Numer pracownika', "Typ dostawy", "Data zlozenia zamowienia", "Typ zakupu"]
+        self.tZZ1.setHorizontalHeaderLabels(kolumny)
+        self.tZZ1.resizeColumnsToContents()
+        self.tZZ1.resizeRowsToContents()
+        self.tZZ1.show()
+        mydbNA = mysql.connector.connect(
+        host="localhost",
+        user='root',
+        passwd='123123123',
+        database="test"
+        )
+        self.listapolaczen.append(mydbNA)
+        self.kursorNA = mydbNA.cursor()
+        self.kursorNAA = mydbNA.cursor()
+
+
+    # Twoje dane klient
+    def przejdzDoPrzegladaniaDanychKlient(self):
+        for i in self.lista:
+            i.hide()
+        self.lista = []
+        self.mojeDaneKlient()
+
+    def mojeDaneKlient(self):
+        pola = []
+        ldane = []
+        self.lWD1.show()
+        self.lista=[self.lWD1]
+        dane = []
+        self.kursorNA.execute("select * from customer where customerid = '"+str(self.idcustomera)+"'")
+        for i in self.kursorNA:
+            for k in i:
+                dane.append(k)
+        kolumny = []
+        self.kursorNA.execute('show columns from customer')
+        for i in self.kursorNA:
+            kolumny.append(i[0])
+        for i in kolumny:
+            pola.append(QtWidgets.QLabel(self))
+            ldane.append(QtWidgets.QLabel(self))
+        k = 0
+        for i in pola:
+            i.setText(kolumny[k])
+            ldane[k].setText(str(dane[k]))
+            i.move(self.szerokosc/2-10*i.size().width()/2+k*i.size().width(), self.wysokosc*0.45)
+            ldane[k].move(self.szerokosc/2-10*i.size().width()/2+k*i.size().width(), self.wysokosc*0.5)
+            ldane[k].show()
+            i.show()
+            k+=1
+        for i in pola:
+            self.lista.append(i)
+        for i in ldane:
+            self.lista.append(i)
+
+
+                
+
+
 
 
 

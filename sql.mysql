@@ -1,0 +1,218 @@
+CREATE TABLE `category` (
+  `categoryid` int NOT NULL,
+  `categoryname` varchar(30) NOT NULL,
+  `descriptions` varchar(100) DEFAULT NULL,
+  `picture` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`categoryid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `customer` (
+  `customerid` int NOT NULL,
+  `companyname` varchar(20) DEFAULT NULL,
+  `contactname` varchar(30) NOT NULL,
+  `phone` varchar(13) NOT NULL,
+  `address` varchar(60) DEFAULT NULL,
+  `city` varchar(20) DEFAULT NULL,
+  `postalcode` int DEFAULT NULL,
+  `country` varchar(20) DEFAULT NULL,
+  `nick` varchar(15) DEFAULT NULL,
+  `pswd` varchar(15) DEFAULT NULL,
+  PRIMARY KEY (`customerid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `region` (
+  `regionid` int NOT NULL,
+  `regiondescription` varchar(60) NOT NULL,
+  PRIMARY KEY (`regionid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `employees` (
+  `employeeid` int NOT NULL,
+  `lastname` varchar(20) NOT NULL,
+  `firstname` varchar(20) NOT NULL,
+  `hiretime` datetime DEFAULT NULL,
+  `title` varchar(30) DEFAULT NULL,
+  `phone` varchar(13) NOT NULL,
+  `email` varchar(50) NOT NULL,
+  `regionid` int NOT NULL,
+  PRIMARY KEY (`employeeid`),
+  KEY `employees_region` (`regionid`),
+  CONSTRAINT `employees_region` FOREIGN KEY (`regionid`) REFERENCES `region` (`regionid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `orderdetails` (
+  `unitprice` decimal(5,2) NOT NULL,
+  `quantity` int NOT NULL,
+  `discount` decimal(5,2) NOT NULL,
+  `productid` int DEFAULT NULL,
+  `orderid` int NOT NULL,
+  `serviceid` int DEFAULT NULL,
+  `type` varchar(1) NOT NULL,
+  `orders_employeeid` int NOT NULL,
+  `orders_customerid` int NOT NULL,
+  `orders_shipperid` int NOT NULL,
+  KEY `orderdetails_orders` (`orderid`,`orders_employeeid`,`orders_customerid`,`orders_shipperid`),
+  KEY `orderdetails_product` (`productid`),
+  KEY `orderdetails_service` (`serviceid`),
+  CONSTRAINT `orderdetails_orders` FOREIGN KEY (`orderid`, `orders_employeeid`, `orders_customerid`, `orders_shipperid`) REFERENCES `orders` (`orderid`, `employeeid`, `customerid`, `shipperid`),
+  CONSTRAINT `orderdetails_product` FOREIGN KEY (`productid`) REFERENCES `product` (`productid`),
+  CONSTRAINT `orderdetails_service` FOREIGN KEY (`serviceid`) REFERENCES `service` (`serviceid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `orders` (
+  `orderid` int NOT NULL,
+  `orderdate` datetime NOT NULL,
+  `shippeddate` datetime DEFAULT NULL,
+  `shipvia` varchar(30) DEFAULT NULL,
+  `shipname` varchar(30) NOT NULL,
+  `shipaddress` varchar(30) NOT NULL,
+  `shipcity` varchar(10) NOT NULL,
+  `shippostal` int NOT NULL,
+  `shipcountry` varchar(20) NOT NULL,
+  `employeeid` int NOT NULL,
+  `customerid` int NOT NULL,
+  `shipperid` int NOT NULL,
+  PRIMARY KEY (`orderid`,`employeeid`,`customerid`,`shipperid`),
+  KEY `orders_customer` (`customerid`),
+  KEY `orders_employees` (`employeeid`),
+  KEY `orders_shipper` (`shipperid`),
+  CONSTRAINT `orders_customer` FOREIGN KEY (`customerid`) REFERENCES `customer` (`customerid`),
+  CONSTRAINT `orders_employees` FOREIGN KEY (`employeeid`) REFERENCES `employees` (`employeeid`),
+  CONSTRAINT `orders_shipper` FOREIGN KEY (`shipperid`) REFERENCES `shipper` (`shipperid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `product` (
+  `productid` int NOT NULL,
+  `productname` varchar(40) NOT NULL,
+  `price` decimal(5,2) NOT NULL,
+  `instock` int DEFAULT NULL,
+  `supplierid` int NOT NULL,
+  `categoryid` int NOT NULL,
+  PRIMARY KEY (`productid`),
+  KEY `product_category` (`categoryid`),
+  KEY `product_supplier` (`supplierid`),
+  CONSTRAINT `product_category` FOREIGN KEY (`categoryid`) REFERENCES `category` (`categoryid`),
+  CONSTRAINT `product_supplier` FOREIGN KEY (`supplierid`) REFERENCES `supplier` (`supplierid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `service` (
+  `serviceid` int NOT NULL,
+  `typeofservice` varchar(10) NOT NULL,
+  `price` decimal(5,2) NOT NULL,
+  `instock` int DEFAULT NULL,
+  `supplierid` int NOT NULL,
+  PRIMARY KEY (`serviceid`),
+  KEY `service_servicesupplier` (`supplierid`),
+  CONSTRAINT `service_servicesupplier` FOREIGN KEY (`supplierid`) REFERENCES `servicesupplier` (`supplierid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `servicesupplier` (
+  `supplierid` int NOT NULL,
+  `companyname` varchar(40) NOT NULL,
+  `contactname` varchar(30) DEFAULT NULL,
+  `phone` varchar(13) DEFAULT NULL,
+  `email` varchar(50) DEFAULT NULL,
+  `homepage` varchar(50) DEFAULT NULL,
+  `nick` varchar(15) DEFAULT NULL,
+  `pswd` varchar(15) DEFAULT NULL,
+  PRIMARY KEY (`supplierid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `shipper` (
+  `shipperid` int NOT NULL,
+  `companyname` varchar(30) NOT NULL,
+  `phone` varchar(13) NOT NULL,
+  PRIMARY KEY (`shipperid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `supplier` (
+  `supplierid` int NOT NULL,
+  `companyname` varchar(40) NOT NULL,
+  `contactname` varchar(30) DEFAULT NULL,
+  `phone` varchar(13) DEFAULT NULL,
+  `email` varchar(50) DEFAULT NULL,
+  `homepage` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`supplierid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+#procedury
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `dodajDetaleZamowienia`(
+	in orderidp int,
+    in customeridp int,
+    in employeesidp int,
+    in shipperidp int,
+    in productidp int,
+    in serviceidp int,
+    in typezp varchar(1))
+BEGIN
+	declare datadzis datetime default '2020-01-02';
+	DECLARE jakwyslane varchar(10) default 'Kurier';
+    DECLARE shipimie varchar(20);
+    DECLARE shipadres varchar(20);
+    DECLARE shipmiasto varchar(20);
+    DECLARE shipkod int;
+    DECLARE shipkraj varchar(20);
+    declare unitcena decimal(5,2);
+    
+select current_date() into datadzis;
+
+SELECT 
+    contactname, address, city, postalcode, country
+INTO shipimie , shipadres , shipmiasto , shipkod , shipkraj 
+FROM
+    customer
+WHERE
+    customerid = customeridp;
+    
+insert into orders (orderid, orderdate, shipvia, shipname, shipaddress, shipcity, shippostal, shipcountry, employeeid, customerid, shipperid) values (orderidp, datadzis, jakwyslane, shipimie, shipadres, shipmiasto, shipkod, shipkraj, employeesidp, customeridp, shipperidp);
+
+
+if typezp = '1' then
+update product set instock = instock - 1 where productid = productidp;
+select price into unitcena from product where productid = productidp;
+insert into orderdetails (unitprice, quantity, discount, productid, orderid, type, orders_employeeid, orders_customerid, orders_shipperid) values (unitcena, 1, 0.0, productidp, orderidp, '1', employeesidp, customeridp, shipperidp);
+else
+update service set instock = instock - 1 where serviceid = serviceidp;
+select price into unitcena from service where serviceid = serviceidp;
+insert into orderdetails (unitprice, quantity, discount, serviceid, orderid, type, orders_employeeid, orders_customerid, orders_shipperid) values (unitcena, 1, 0.0, serviceidp, orderidp, '2', employeesidp, customeridp, shipperidp);
+end if;
+
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `zobaczZamowienia`(
+	in idklienta int,
+    in idzamowienia int)
+BEGIN
+	declare idproduktu int;
+    declare iduslugi int;
+	DECLARE nazwaProductu varchar(20);
+    DECLARE cenaProduktu double(5,2);
+    declare iloscProduktu int;
+    declare imieTypa varchar(20);
+    declare numertypa varchar(12);
+    declare idTypa int;
+    declare jakiTyp varchar(1);
+    declare datazamowienia datetime;
+    declare typDostawy varchar(10);
+    
+    select type into jakiTyp from orderdetails where (orderid = idzamowienia and orders_customerid = idklienta);
+    if jakiTyp = '1' then
+    select productid, quantity, orders_employeeid into idproduktu, iloscProduktu, idTypa from orderdetails where (orderid = idzamowienia and orders_customerid = idklienta);
+    select productname, price into nazwaProductu, cenaProduktu from product where productid = idproduktu;
+    select lastname, phone into imieTypa, numertypa from employees where employeeid = idTypa;
+    select shipvia, orderdate into typDostawy, datazamowienia from orders where orderid = idzamowienia;
+    select idproduktu, nazwaProductu, iloscProduktu, cenaProduktu, imieTypa, numertypa, typDostawy, datazamowienia, jakiTyp;
+    elseif jakiTyp = '2' then
+	select serviceid, quantity, orders_employeeid into iduslugi, iloscProduktu, idTypa from orderdetails where (orderid = idzamowienia and orders_customerid = idklienta);
+    select typeofservice, price into nazwaProductu, cenaProduktu from service where serviceid = iduslugi;
+    select lastname, phone into imieTypa, numertypa from employees where employeeid = idTypa;
+    select shipvia, orderdate into typDostawy, datazamowienia from orders where orderid = idzamowienia;
+    select iduslugi, nazwaProductu, iloscProduktu, cenaProduktu, imieTypa, numertypa, typDostawy, datazamowienia, jakiTyp;
+    end if;
+    
+
+END$$
+DELIMITER ;
