@@ -3,6 +3,7 @@ import mysql.connector
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QApplication, QComboBox, QMainWindow, QMessageBox
 import sys
+import random
 
 
 
@@ -21,6 +22,8 @@ class oknoZaloguj(QMainWindow):
 #inicjacja poczatkowych obiektow
     def initUI(self):
         self.lista = []
+        self.listapolaczen = []
+        self.idcustomera = -1
         #przycisk home admin
         self.bPHA1 = QtWidgets.QPushButton(self)
         self.bPHA1.setText('Menu główne')
@@ -41,6 +44,13 @@ class oknoZaloguj(QMainWindow):
         self.bPA1.move(self.szerokosc*0.8, self.wysokosc*0.1)
         self.bPA1.clicked.connect(self.przejdzDoLogowania)
         self.bPA1.hide()
+
+        #Przycisk wyloguj
+        self.bPW1 = QtWidgets.QPushButton(self)
+        self.bPW1.setText('Wyloguj')
+        self.bPW1.move(self.szerokosc*0.9, self.wysokosc*0.1)
+        self.bPW1.clicked.connect(self.wyloguj)
+        self.bPW1.hide()
 
         #Popup window
         self.popUp = QtWidgets.QMessageBox(self)
@@ -181,7 +191,7 @@ class oknoZaloguj(QMainWindow):
         self.bSK1.setText('Dalej')
         self.bSK1.move(self.szerokosc/2-self.bSK1.size().width()/2, self.wysokosc/2)
         self.bSK1.hide() 
-        self.bSK1.clicked.connect(self.stworzKontoDodatkoweInformacje)
+        self.bSK1.clicked.connect(self.przejdzDoPodawaniaDodatkowychInfo)
 
         self.bSK2 = QtWidgets.QPushButton(self)
         self.bSK2.setText('Dodaj konto')
@@ -231,7 +241,7 @@ class oknoZaloguj(QMainWindow):
 
         self.bUR1 = QtWidgets.QPushButton(self)
         self.bUR1.setText('Usun rekord')
-        self.bUR1.move(self.szerokosc/2-self.bUR1.size().width()/2, self.wysokosc*0.8)
+        self.bUR1.move(self.szerokosc/2-self.bUR1.size().width()/2, self.wysokosc*0.9)
         self.bUR1.hide() 
         self.bUR1.clicked.connect(self.usunRekord)
 
@@ -302,6 +312,20 @@ class oknoZaloguj(QMainWindow):
         self.logowanie()
 
 
+    def wyloguj(self):
+        for i in self.lista:
+            i.hide()
+        self.lista = []
+        for i in self.listapolaczen:
+            i.close()
+        self.listapolaczen = []
+        self.bPW1.hide()
+        self.itOL1.clear()
+        self.itOL2.clear()
+        self.bPHK1.hide()
+        self.bPHA1.hide()
+        self.idcustomera = -1
+        self.logowanie()
 
     def przejdzDoLogowania(self):
         for i in self.lista:
@@ -311,6 +335,10 @@ class oknoZaloguj(QMainWindow):
             i.hide()
         for i in self.nazwySK2:
             i.hide()
+        for i in self.listapolaczen:
+            i.close()
+        self.itSK1.clear()
+        self.itSK2.clear()
         self.logowanie()
         #zainicjuj pierwszy ekran
     def logowanie(self):
@@ -337,6 +365,7 @@ class oknoZaloguj(QMainWindow):
                 passwd=haslo,
                 database="test"
                 )
+                self.listapolaczen.append(mydb)
                 self.kursor = mydb.cursor()
                 self.kursor.execute('show tables')
                 self.tablice = self.kursor.fetchall()
@@ -350,6 +379,7 @@ class oknoZaloguj(QMainWindow):
                 self.cbOL1.hide() 
                 self.bPHA1.show()
                 self.pokazOpcjeAdmin()
+                self.bPW1.show()
             else:
                 self.showPopup()
         else:
@@ -363,22 +393,27 @@ class oknoZaloguj(QMainWindow):
             passwd='123123123',
             database="test"
             )
+            self.listapolaczen.append(mydbNA)
             self.kursorNA = mydbNA.cursor()
-            self.kursorNA.execute('select pswd from '+ kto + " where nick = '"+login+"'")
-            znaleziony = 0
-            for i in self.kursorNA:
-                if i[0]==haslo:
-                    self.pokazOpcjeCustomer()
-                    znaleziony = 1
-                    self.lOL1.hide()
-                    self.bOL1.hide()
-                    self.bOL2.hide()
-                    self.itOL1.hide()
-                    self.itOL2.hide()
-                    self.cbOL1.hide()
-                    break
-            if znaleziony == 0:
-                self.showPopup()
+            if kto == "customer":
+                self.kursorNA.execute("select pswd, customerid from customer where nick = '"+login+"'")
+                znaleziony = 0
+                for i in self.kursorNA:
+                    print(i[1])
+                    if i[0]==haslo:
+                        self.pokazOpcjeCustomer()
+                        znaleziony = 1
+                        self.lOL1.hide()
+                        self.bOL1.hide()
+                        self.bOL2.hide()
+                        self.itOL1.hide()
+                        self.itOL2.hide()
+                        self.cbOL1.hide()
+                        self.bPW1.show()
+                        self.idcustomera = i[1]
+                        break
+                if znaleziony == 0:
+                    self.showPopup()
 
 
     def showPopup(self):
@@ -408,6 +443,14 @@ class oknoZaloguj(QMainWindow):
         self.bSK1.show()
         self.bPA1.show()
         self.lista = [self.bSK2, self.itSK1, self.itSK2, self.lSK1, self.cbSK1, self.bSK1, self.bPA1]
+
+    def przejdzDoPodawaniaDodatkowychInfo(self):
+        if self.itSK1.text() == '' or self.itSK2.text() == '':
+            self.showPopup()
+        else:
+            self.stworzKontoDodatkoweInformacje()
+
+        
     def stworzKontoDodatkoweInformacje(self):
         self.bSK2.show()
         self.ktoSK1 = self.cbSK1.currentText() 
@@ -424,6 +467,7 @@ class oknoZaloguj(QMainWindow):
         passwd='123123123',
         database="test"
         )
+        self.listapolaczen.append(self.mydbSK)
         self.kursorSK = self.mydbSK.cursor() 
         self.kursorSK.execute('show columns from '+self.ktoSK1)
         ile = 0
@@ -484,6 +528,8 @@ class oknoZaloguj(QMainWindow):
             for i in self.polaSK1:
                 i.hide()
             self.bSK2.hide()
+        self.itSK1.clear()
+        self.itSK2.clear()
         self.mydbSK.close()
 #przycisk menu główne
     def przejdzDoOpcjiAdmina(self):
@@ -546,7 +592,9 @@ class oknoZaloguj(QMainWindow):
         if self.cbZR2.currentText() == "*":
             self.kursor.execute('show columns from '+self.cbZR1.currentText())
             kolumny = 0
+            nazwykolumn = []
             for i in self.kursor:
+                nazwykolumn.append(i[0])
                 kolumny +=1
             self.tZR1.clear()
             self.tZR1.setColumnCount(kolumny)
@@ -564,6 +612,7 @@ class oknoZaloguj(QMainWindow):
                     n+=1
                 m+=1
                 n = 0
+            self.tZR1.setHorizontalHeaderLabels(nazwykolumn)
             self.tZR1.resizeColumnsToContents()
             self.tZR1.resizeRowsToContents()
         else:
@@ -845,11 +894,11 @@ class oknoZaloguj(QMainWindow):
             self.napisyPP[i].show()
 
         self.kursorNA.execute('show columns from '+self.cbPU1.currentText())
-        kolumny = 0
+        kolumnyl = 0
         for i in self.kursorNA:
-            kolumny +=1
+            kolumnyl +=1
         self.tPU1.clear()
-        self.tPU1.setColumnCount(kolumny)
+        self.tPU1.setColumnCount(kolumnyl)
         self.kursorNA.execute('Select * from '+ self.cbPU1.currentText())
         wiersze = 0
         for i in self.kursorNA:
@@ -864,6 +913,7 @@ class oknoZaloguj(QMainWindow):
                 n+=1
             m+=1
             n = 0
+        self.tPU1.setHorizontalHeaderLabels(kolumny)
         self.tPU1.resizeColumnsToContents()
         self.tPU1.resizeRowsToContents()
 
@@ -937,13 +987,56 @@ class oknoZaloguj(QMainWindow):
     def naPewnoChceKupic(self, i):
 
         if i.text() != '&No':
-            print('No to dodaje')
             if self.cbPU1.currentText() == 'product':
                 self.kursorNA.execute("select instock from product where productid = " + self.idtegoczegos)
                 ilezostalo = self.kursorNA.fetchone()
                 ilezostalo = ilezostalo[0]
                 if ilezostalo == 0:
                     self.showPopupKoniecProduktu()
+                else:
+                    self.kursorNA.execute('select employeeid from employees')
+                    listapracownikow = []
+                    for i in self.kursorNA:
+                        listapracownikow.append(i[0])
+                    self.kursorNA.execute('select shipperid from shipper')
+                    listadostawcow = []
+                    for i in self.kursorNA:
+                        listadostawcow.append(i[0])
+                    self.kursorNA.execute('select orderid from orders')
+                    indeksy = []
+                    for i in self.kursorNA:
+                        indeksy.append(i[0])
+                    i=1
+                    while i in indeksy:
+                        i+=1    
+                    kolejka = ("call dodajDetaleZamowienia (%s, %s,%s, %s,%s, %s,'%s')")
+                    self.kursorNA.execute(kolejka, (str(i), self.idcustomera, random.choice(listapracownikow), random.choice(listadostawcow), self.idtegoczegos, 3, 1))
+                    mydbNA.commit()
+            else:
+                self.kursorNA.execute("select instock from service where serviceid = " + self.idtegoczegos)
+                ilezostalo = self.kursorNA.fetchone()
+                ilezostalo = ilezostalo[0]
+                if ilezostalo == 0:
+                    self.showPopupKoniecProduktu()
+                else:
+                    self.kursorNA.execute('select employeeid from employees')
+                    listapracownikow = []
+                    for i in self.kursorNA:
+                        listapracownikow.append(i[0])
+                    self.kursorNA.execute('select shipperid from shipper')
+                    listadostawcow = []
+                    for i in self.kursorNA:
+                        listadostawcow.append(i[0])
+                    self.kursorNA.execute('select orderid from orders')
+                    indeksy = []
+                    for i in self.kursorNA:
+                        indeksy.append(i[0])
+                    i=1
+                    while i in indeksy:
+                        i+=1    
+                    kolejka = ("call dodajDetaleZamowienia (%s, %s,%s, %s,%s, %s,'%s')")
+                    self.kursorNA.execute(kolejka, (str(i), self.idcustomera, random.choice(listapracownikow), random.choice(listadostawcow), 3, self.idtegoczegos, 2))
+                    mydbNA.commit()
 
 
         
