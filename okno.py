@@ -38,6 +38,13 @@ class oknoZaloguj(QMainWindow):
         self.bPHK1.clicked.connect(self.przejdzDoOpcjiCustomer)
         self.bPHK1.hide()
 
+        #przycisk home dostawca
+        self.bPHS1 = QtWidgets.QPushButton(self)
+        self.bPHS1.setText('Menu główne')
+        self.bPHS1.move(self.szerokosc*0.8, self.wysokosc*0.1)
+        self.bPHS1.clicked.connect(self.przejdzDoOpcjiDostawcy)
+        self.bPHS1.hide()
+
         #Przycisk anuluj
         self.bPA1 = QtWidgets.QPushButton(self)
         self.bPA1.setText('Anuluj')
@@ -333,6 +340,61 @@ class oknoZaloguj(QMainWindow):
         self.lWD1.hide()
 
 
+        #Panel kontrolny suppliera
+        self.lPOS1 = QtWidgets.QLabel(self)
+        self.lPOS1.setText("Co chcesz zrobic?")
+        self.lPOS1.adjustSize()
+        l1size = self.lPOS1.size()
+        l1s = l1size.width()
+        self.lPOS1.move(self.szerokosc/2-l1s/2, self.wysokosc*0.4)
+        self.lPOS1.hide()
+
+        self.lPOS2 = QtWidgets.QLabel(self)
+        self.lPOS2.setText("Jesteś w panelu dostawcy uslug")
+        self.lPOS2.setFont(QFont('Arial', 20))
+        self.lPOS2.adjustSize()
+        l2s = self.lPOS2.size().width()
+        self.lPOS2.move(self.szerokosc/2-l2s/2, self.wysokosc*0.2)
+        self.lPOS2.hide()
+
+        self.bPOS1 = QtWidgets.QPushButton(self)
+        self.bPOS1.setText("Dodaj usluge/serwis")
+        self.bPOS1.adjustSize()
+        self.bPOS1.hide()
+
+        self.bPOS2 = QtWidgets.QPushButton(self)
+        self.bPOS2.setText("Zobacz zamówienia Twoich produktów")
+        self.bPOS2.adjustSize()
+        self.bPOS2.hide()
+
+        self.bPOS3 = QtWidgets.QPushButton(self)
+        self.bPOS3.setText("Twoje konto")
+        self.bPOS3.adjustSize()
+        self.bPOS3.hide()
+
+        self.bPOS1.move(self.szerokosc/2-self.bPOS1.size().width()-self.bPOS2.size().width()/2, self.wysokosc*0.6)
+        self.bPOS2.move(self.szerokosc/2-self.bPOS2.size().width()/2, self.wysokosc*0.6)
+        self.bPOS3.move(self.szerokosc/2+self.bPOS2.size().width()/2, self.wysokosc*0.6)
+        self.bPOS1.clicked.connect(self.przejdzDoOknaDodawaniaUslug)
+        self.bPOS2.clicked.connect(self.przejdzDoOgladaniaZamowienDostawcy)
+        self.bPOS3.clicked.connect(self.przejdzDoPrzegladaniaDanychDostawca)
+
+        #Dodawanie uslug
+        self.bDU1 = QtWidgets.QPushButton(self)
+        self.bDU1.setText("Dodaj usluge")
+        self.bDU1.move(self.szerokosc/2-self.bDU1.size().width()/2, self.wysokosc*0.9)
+        self.bDU1.hide()
+        self.bDU1.clicked.connect(self.oSerioNacisnales)
+
+        self.lDU1 = QtWidgets.QLabel(self)
+        self.lDU1.setText("Podaj dane wystawianej uslugi")
+        self.lDU1.setFont(QFont('Arial', 20))
+        self.lDU1.adjustSize()
+        l2s = self.lDU1.size().width()
+        self.lDU1.move(self.szerokosc/2-l2s/2, self.wysokosc*0.2)
+        self.lDU1.hide()
+
+
         self.logowanie()
 
 
@@ -348,6 +410,7 @@ class oknoZaloguj(QMainWindow):
         self.itOL2.clear()
         self.bPHK1.hide()
         self.bPHA1.hide()
+        self.bPHS1.hide()
         self.idcustomera = -1
         self.logowanie()
 
@@ -438,6 +501,24 @@ class oknoZaloguj(QMainWindow):
                         break
                 if znaleziony == 0:
                     self.showPopup()
+            elif kto == "servicesupplier":
+                self.kursorNA.execute("select pswd, supplierid from servicesupplier where nick = '"+login+"'")
+                znaleziony = 0
+                for i in self.kursorNA:
+                    if i[0]==haslo:
+                        self.pokazOpcjeSuppliera()
+                        znaleziony = 1
+                        self.lOL1.hide()
+                        self.bOL1.hide()
+                        self.bOL2.hide()
+                        self.itOL1.hide()
+                        self.itOL2.hide()
+                        self.cbOL1.hide()
+                        self.bPW1.show()
+                        self.idsuppliera = i[1]
+                        break
+                if znaleziony == 0:
+                    self.showPopup()
 
 
     def showPopup(self):
@@ -522,9 +603,9 @@ class oknoZaloguj(QMainWindow):
         for i in self.polaSK1:
             if i.text() == '':
                 mozna = 0
-        if self.ktoSK1 == "customer":
-            if not isinstance(self.polaSK1[5].text(), int):
-                mozna = 0
+        #if self.ktoSK1 == "customer":
+        #    if not isinstance(self.polaSK1[5].text(), int):
+        #        mozna = 0
         if mozna == 1:
             if self.ktoSK1 == "customer":
                 self.kursorSK.execute('select customerid from customer')
@@ -1174,6 +1255,162 @@ class oknoZaloguj(QMainWindow):
             self.lista.append(i)
         for i in ldane:
             self.lista.append(i)
+
+    # Panel dostawcy uslug
+    def przejdzDoOpcjiDostawcy(self):
+        for i in self.lista:
+            i.hide()
+        self.pokazOpcjeSuppliera()
+
+    def pokazOpcjeSuppliera(self):
+        self.lPOS1.show()
+        self.lPOS2.show()
+        self.bPOS1.show()
+        self.bPOS2.show()
+        self.bPOS3.show()
+        self.bPHS1.show()
+        self.lista = [self.lPOS1, self.lPOS2, self.bPOS1, self.bPOS2, self.bPOS3]
+
+    #okno dodawania uslug
+    def przejdzDoOknaDodawaniaUslug(self):
+        self.napisyDU = []
+        self.polaDU = []
+        for i in self.lista:
+            i.hide()
+        self.dodajUsluge()
+    def dodajUsluge(self):
+        self.bDU1.show()
+        self.lDU1.show()
+        self.kursorNA.execute('show columns from service')
+        kolumny = self.kursorNA.fetchall()
+        kolumny.pop(0)
+        kolumny.pop(3)
+        for i in kolumny:
+            self.polaDU.append(QtWidgets.QLineEdit(self))
+            self.napisyDU.append(QtWidgets.QLabel(self))
+        for i in range(len(self.napisyDU)):
+            self.napisyDU[i].setText(kolumny[i][0])
+        przesuniecie = 0
+        for i in self.polaDU:
+            i.move(self.szerokosc/2-i.size().width()/2, self.wysokosc*0.4+przesuniecie)
+            i.show()
+            przesuniecie+=30
+        przesuniecie = 0
+        for i in range(len(self.napisyDU)):
+            self.napisyDU[i].adjustSize()
+            self.napisyDU[i].move(self.szerokosc/2-self.napisyDU[i].size().width()-self.polaDU[i].size().width()/2-5, self.wysokosc*0.4+przesuniecie)
+            self.napisyDU[i].show()
+            przesuniecie+=30
+        self.lista.append(self.bDU1)
+        self.lista.append(self.lDU1)
+        for i in range(len(self.polaDU)):
+            self.lista.append(self.polaDU[i])
+            self.lista.append(self.napisyDU[i])
+
+    def oSerioNacisnales(self):
+        self.kursorNA.execute('select serviceid from service')
+        indeksy = []
+        for i in self.kursorNA:
+            indeksy.append(i[0])
+        i=1
+        while i in indeksy:
+            i+=1 
+        self.kursorNA.execute('insert into service (serviceid, typeofservice, price, instock, supplierid) values (%s, %s, %s, %s, %s)', (str(i), self.polaDU[0].text(), self.polaDU[1].text(), self.polaDU[2].text(), self.idsuppliera))
+        mydbNA.commit()
+
+    # Twoje dane Dostawca
+    def przejdzDoPrzegladaniaDanychDostawca(self):
+        for i in self.lista:
+            i.hide()
+        self.lista = []
+        self.mojeDaneDostawca()
+
+    def mojeDaneDostawca(self):
+        pola = []
+        ldane = []
+        self.lWD1.show()
+        self.lista=[self.lWD1]
+        dane = []
+        self.kursorNA.execute("select * from servicesupplier where supplierid = '"+str(self.idsuppliera)+"'")
+        for i in self.kursorNA:
+            for k in i:
+                dane.append(k)
+        kolumny = []
+        self.kursorNA.execute('show columns from servicesupplier')
+        for i in self.kursorNA:
+            kolumny.append(i[0])
+        for i in kolumny:
+            pola.append(QtWidgets.QLabel(self))
+            ldane.append(QtWidgets.QLabel(self))
+        k = 0
+        for i in pola:
+            i.setText(kolumny[k])
+            ldane[k].setText(str(dane[k]))
+            i.move(self.szerokosc/2-8*i.size().width()/2+k*i.size().width(), self.wysokosc*0.45)
+            ldane[k].move(self.szerokosc/2-8*i.size().width()/2+k*i.size().width(), self.wysokosc*0.5)
+            ldane[k].show()
+            i.show()
+            k+=1
+        for i in pola:
+            self.lista.append(i)
+        for i in ldane:
+            self.lista.append(i)
+
+    #ogladanie zamowien klienta
+    def przejdzDoOgladaniaZamowienDostawcy(self):
+        for i in self.lista:
+            i.hide()
+        self.lista = []
+        self.zobaczMojeZamowieniaDostawca()
+    def zobaczMojeZamowieniaDostawca(self):
+        self.lista = [self.tZZ1, self.lZZ1]
+        self.lZZ1.show()
+        numeryzamowien = []
+        zamowienia = []
+        kolejka = ("call zobaczZamowieniaDostawca(%s, %s)")
+        self.kursorNAA.execute("select orderid from orderdetails where type = '2'")
+        for l in self.kursorNAA:
+            numeryzamowien.append(l[0])
+        for i in numeryzamowien:
+            mydbNA = mysql.connector.connect(
+            host="localhost",
+            user='root',
+            passwd='123123123',
+            database="test"
+            )
+            self.listapolaczen.append(mydbNA)
+            self.kursorNA = mydbNA.cursor()
+            self.kursorNAA = mydbNA.cursor()
+            self.kursorNAA.execute(kolejka, (self.idsuppliera, str(i)))
+            for k in self.kursorNAA:
+                zamowienia.append(k)
+            mydbNA.close()
+        self.tZZ1.setColumnCount(8)
+        self.tZZ1.setRowCount(len(zamowienia))
+        self.tZZ1.setGeometry(self.szerokosc*0.1,self.wysokosc*0.3,self.szerokosc*0.8, self.wysokosc*0.6)
+        m =0
+        n =0
+        for i in zamowienia:
+            for k in i:
+                newitem = QtWidgets.QTableWidgetItem(str(k))
+                self.tZZ1.setItem(m, n, newitem)
+                n+=1
+            m+=1
+            n = 0
+        kolumny = ['Nazwisko kupującego', 'Numer kupującego', 'Adres kupującego', "Miasto", "Kod pocztowy", 'Kraj', "Numer uslugi","Typ uslugi", "Cena"]
+        self.tZZ1.setHorizontalHeaderLabels(kolumny)
+        self.tZZ1.resizeColumnsToContents()
+        self.tZZ1.resizeRowsToContents()
+        self.tZZ1.show()
+        mydbNA = mysql.connector.connect(
+        host="localhost",
+        user='root',
+        passwd='123123123',
+        database="test"
+        )
+        self.listapolaczen.append(mydbNA)
+        self.kursorNA = mydbNA.cursor()
+        self.kursorNAA = mydbNA.cursor()
 
 
                 
