@@ -218,3 +218,28 @@ BEGIN
 
 END$$
 DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `zobaczZamowieniaDostawca`(
+	in iddostawcy int,
+    in idzamowienia int)
+BEGIN
+	declare imie varchar(20);
+    declare numer varchar(20);
+    declare adres varchar(20);
+    declare miasto varchar (20);
+    declare kodpocztowy int;
+    declare kraj varchar (20);
+    declare ktorausluga varchar(1);
+    declare numerklienta int;
+    declare typuslugi varchar(20);
+    declare cena double(7,2);
+    
+    select orders_customerid, serviceid, unitprice into numerklienta, ktorausluga, cena from orderdetails where orderid = idzamowienia and type = '2';
+    select contactname, phone, address, city, postalcode, country into imie, numer, adres, miasto, kodpocztowy, kraj from customer where customerid = numerklienta;
+    select typeofservice into typuslugi from service where serviceid = ktorausluga;
+    select imie,numer,adres,miasto,kodpocztowy,kraj, ktorausluga, typuslugi, cena;
+
+END$$
+DELIMITER ;
+
