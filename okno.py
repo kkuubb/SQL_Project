@@ -64,6 +64,7 @@ class oknoZaloguj(QMainWindow):
         self.popUpKUP = QtWidgets.QMessageBox(self)
         self.popUpKUP.buttonClicked.connect(self.naPewnoChceKupic)
         self.popUpKoniec = QtWidgets.QMessageBox(self)
+        self.popUpPP = QtWidgets.QMessageBox(self)
 
         #Ekran logowania
         self.lOL1 = QtWidgets.QLabel(self)
@@ -603,9 +604,6 @@ class oknoZaloguj(QMainWindow):
         for i in self.polaSK1:
             if i.text() == '':
                 mozna = 0
-        #if self.ktoSK1 == "customer":
-        #    if not isinstance(self.polaSK1[5].text(), int):
-        #        mozna = 0
         if mozna == 1:
             if self.ktoSK1 == "customer":
                 self.kursorSK.execute('select customerid from customer')
@@ -616,8 +614,11 @@ class oknoZaloguj(QMainWindow):
                 i=1
                 while i in indeksy:
                     i+=1
-                self.kursorSK.execute('insert into customer (customerid, companyname, contactName, phone, address, city, postalCode, country, nick, pswd) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), self.polaSK1[0].text(), self.polaSK1[1].text(), self.polaSK1[2].text(), self.polaSK1[3].text(), self.polaSK1[4].text(), self.polaSK1[5].text(), self.polaSK1[6].text(),self.nickSK1, self.pswdSK1))
-                self.mydbSK.commit()  
+                try:
+                    self.kursorSK.execute('insert into customer (customerid, companyname, contactName, phone, address, city, postalCode, country, nick, pswd) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), self.polaSK1[0].text(), self.polaSK1[1].text(), self.polaSK1[2].text(), self.polaSK1[3].text(), self.polaSK1[4].text(), self.polaSK1[5].text(), self.polaSK1[6].text(),self.nickSK1, self.pswdSK1))
+                    self.mydbSK.commit()
+                except:
+                    self.showPopupPustePole() 
 
             elif self.ktoSK1 == 'servicesupplier':
                 self.kursorSK.execute('select supplierid from servicesupplier')
@@ -628,24 +629,27 @@ class oknoZaloguj(QMainWindow):
                 i=1
                 while i in indeksy:
                     i+=1
-                self.kursorSK.execute('insert into servicesupplier (supplierId, companyName, contactName, phone, email, homePage, nick, pswd) values (%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), self.polaSK1[0].text(), self.polaSK1[1].text(), self.polaSK1[2].text(), self.polaSK1[3].text(), self.polaSK1[4].text(),self.nickSK1, self.pswdSK1))
-                self.mydbSK.commit()
+                try:
+                    self.kursorSK.execute('insert into servicesupplier (supplierId, companyName, contactName, phone, email, homePage, nick, pswd) values (%s,%s,%s,%s,%s,%s,%s,%s)', (str(i), self.polaSK1[0].text(), self.polaSK1[1].text(), self.polaSK1[2].text(), self.polaSK1[3].text(), self.polaSK1[4].text(),self.nickSK1, self.pswdSK1))
+                    self.mydbSK.commit()
+                except:
+                    self.showPopupPustePole()
             self.logowanie()
             for i in self.nazwySK2:
                 i.hide()
             for i in self.polaSK1:
                 i.hide()
             self.bSK2.hide()
-        self.itSK1.clear()
-        self.itSK2.clear()
-        self.mydbSK.close()
+            self.itSK1.clear()
+            self.itSK2.clear()
+            self.mydbSK.close()
 #przycisk menu główne
     def przejdzDoOpcjiAdmina(self):
         for i in self.lista:
             i.hide()
         self.lista = []
         self.pokazOpcjeAdmin()
-#okno wyboru opcji - dodac wyloguj i konto
+#okno wyboru opcji
     def pokazOpcjeAdmin(self):
         self.setWindowTitle('Alligro <3 - Panel Administratora')
         self.bPHA1.show() 
@@ -809,74 +813,102 @@ class oknoZaloguj(QMainWindow):
         for i in self.nazwySK2:
             self.lista.append(i)
 
-    def dodajRekordyDoTabel(self):
-        if self.cbDR1.currentText() != 'orderdetails':
-            if self.cbDR1.currentText() == 'employees':
-                idd = 'employee'
-            elif self.cbDR1.currentText() == 'orders':
-                idd = 'order'
-            elif self.cbDR1.currentText() == 'servicesupplier':
-                idd = 'supplier'
-            else:
-                idd = self.cbDR1.currentText()
-            self.kursor1.execute('select '+idd+'id from '+self.cbDR1.currentText())
-            indeksy = []
-            for i in self.kursor1:
-                indeksy.append(i[0])
+    def showPopupPustePole(self):
+        tytuł = "Sprwadź dane!"
+        wiadomosc = "Nie wypelniles ktoregos pola lub wypelniles je zle"
+        self.popUpPP.setWindowTitle(tytuł)
+        self.popUpPP.setText(wiadomosc)
+        self.popUpPP.setIcon(QMessageBox.Critical)
+        x = self.popUpPP.exec_()
 
-            i = 1
-            while i in indeksy:
-                i+=1
-            kolumny = ''
-            kolumnynumer = []
-            self.kursor1.execute('show columns from '+self.cbDR1.currentText())
-            for k in self.kursor1:
-                kolumnynumer.append(k)
-            for k in kolumnynumer[1:]:
-                kolumny = kolumny + k[0]+ ', '
-            wartosci = ' '
-            for k in self.polaSK1:
-                wartosci = wartosci +"'" +k.text()+"'" +', '
-            kolumny = kolumny[0:-2]
-            wartosci = wartosci[0:-2]
-            self.kursor1.execute('insert into '+ self.cbDR1.currentText() + ' (' +idd+'id, ' +kolumny +') values ('+str(i)+', '+wartosci+')')
-            #print('insert into '+ self.cbDR1.currentText() + ' (' +idd+'id, ' +kolumny +') values ('+str(i)+', '+wartosci+')')
+    def dodajRekordyDoTabel(self):
+        czypuste = 0
+        for i in self.polaSK1:
+            if i.text() == '':
+                czypuste = 1
+        if czypuste == 0:
+            if self.cbDR1.currentText() != 'orderdetails':
+                if self.cbDR1.currentText() == 'employees':
+                    idd = 'employee'
+                elif self.cbDR1.currentText() == 'orders':
+                    idd = 'order'
+                elif self.cbDR1.currentText() == 'servicesupplier':
+                    idd = 'supplier'
+                else:
+                    idd = self.cbDR1.currentText()
+                self.kursor1.execute('select '+idd+'id from '+self.cbDR1.currentText())
+                indeksy = []
+                for i in self.kursor1:
+                    indeksy.append(i[0])
+
+                i = 1
+                while i in indeksy:
+                    i+=1
+                kolumny = ''
+                kolumnynumer = []
+                self.kursor1.execute('show columns from '+self.cbDR1.currentText())
+                for k in self.kursor1:
+                    kolumnynumer.append(k)
+                for k in kolumnynumer[1:]:
+                    kolumny = kolumny + k[0]+ ', '
+                wartosci = ' '
+                for k in self.polaSK1:
+                    wartosci = wartosci +"'" +k.text()+"'" +', '
+                kolumny = kolumny[0:-2]
+                wartosci = wartosci[0:-2]
+                try:
+                    self.kursor1.execute('insert into '+ self.cbDR1.currentText() + ' (' +idd+'id, ' +kolumny +') values ('+str(i)+', '+wartosci+')')
+                    #print("dzialam")
+                except:
+                    self.showPopupPustePole()
+                #print('insert into '+ self.cbDR1.currentText() + ' (' +idd+'id, ' +kolumny +') values ('+str(i)+', '+wartosci+')')
+            else:
+                if self.polaSK1[6].text() == '1':
+                    kolumny = ''
+                    kolumnynumer = []
+                    self.kursor1.execute('show columns from '+self.cbDR1.currentText())
+                    for k in self.kursor1:
+                        if k[0]!='serviceid':
+                            kolumnynumer.append(k)
+                    for k in kolumnynumer:
+                        kolumny = kolumny + k[0]+ ', '
+                    wartosci = ' '
+                    for k in range(len(self.polaSK1)):
+                        if k != 5:
+                            wartosci = wartosci +"'" +self.polaSK1[k].text()+"'" +', '
+                    kolumny = kolumny[0:-2]
+                    wartosci = wartosci[0:-2]
+                    try:
+                        self.kursor1.execute('insert into '+ self.cbDR1.currentText() + ' (' +kolumny +') values ('+wartosci+')')
+                        #print('insert into '+ self.cbDR1.currentText() + ' (' +kolumny +') values ('+wartosci+')')
+                    except:
+                        self.showPopupPustePole()
+                elif self.polaSK1[6].text() == '2':
+                    kolumny = ''
+                    kolumnynumer = []
+                    self.kursor1.execute('show columns from '+self.cbDR1.currentText())
+                    for k in self.kursor1:
+                        if k[0]!='productid':
+                            kolumnynumer.append(k)
+                    for k in kolumnynumer:
+                        kolumny = kolumny + k[0]+ ', '
+                    wartosci = ' '
+                    for k in range(len(self.polaSK1)):
+                        if k != 3:
+                            wartosci = wartosci +"'" +self.polaSK1[k].text()+"'" +', '
+                    kolumny = kolumny[0:-2]
+                    wartosci = wartosci[0:-2]
+                    try:
+                        self.kursor1.execute('insert into '+ self.cbDR1.currentText() + ' (' +kolumny +') values ('+wartosci+')')
+                        print('dzialam')
+                        #print('insert into '+ self.cbDR1.currentText() + ' (' +kolumny +') values ('+wartosci+')')
+                    except:
+                        self.showPopupPustePole()
+                else:
+                    self.showPopupPustePole()
+            mydb.commit()
         else:
-            if self.polaSK1[6].text() == '1':
-                kolumny = ''
-                kolumnynumer = []
-                self.kursor1.execute('show columns from '+self.cbDR1.currentText())
-                for k in self.kursor1:
-                    if k[0]!='serviceid':
-                        kolumnynumer.append(k)
-                for k in kolumnynumer:
-                    kolumny = kolumny + k[0]+ ', '
-                wartosci = ' '
-                for k in range(len(self.polaSK1)):
-                    if k != 5:
-                        wartosci = wartosci +"'" +self.polaSK1[k].text()+"'" +', '
-                kolumny = kolumny[0:-2]
-                wartosci = wartosci[0:-2]
-                self.kursor1.execute('insert into '+ self.cbDR1.currentText() + ' (' +kolumny +') values ('+wartosci+')')
-                #print('insert into '+ self.cbDR1.currentText() + ' (' +kolumny +') values ('+wartosci+')')
-            if self.polaSK1[6].text() == '2':
-                kolumny = ''
-                kolumnynumer = []
-                self.kursor1.execute('show columns from '+self.cbDR1.currentText())
-                for k in self.kursor1:
-                    if k[0]!='productid':
-                        kolumnynumer.append(k)
-                for k in kolumnynumer:
-                    kolumny = kolumny + k[0]+ ', '
-                wartosci = ' '
-                for k in range(len(self.polaSK1)):
-                    if k != 3:
-                        wartosci = wartosci +"'" +self.polaSK1[k].text()+"'" +', '
-                kolumny = kolumny[0:-2]
-                wartosci = wartosci[0:-2]
-                self.kursor1.execute('insert into '+ self.cbDR1.currentText() + ' (' +kolumny +') values ('+wartosci+')')
-                #print('insert into '+ self.cbDR1.currentText() + ' (' +kolumny +') values ('+wartosci+')')
-        mydb.commit()
+            self.showPopupPustePole()
 
     #okno usuwania rekordow
     def przejdzDoUsuwaniaRekordow(self):
@@ -1315,8 +1347,11 @@ class oknoZaloguj(QMainWindow):
         i=1
         while i in indeksy:
             i+=1 
-        self.kursorNA.execute('insert into service (serviceid, typeofservice, price, instock, supplierid) values (%s, %s, %s, %s, %s)', (str(i), self.polaDU[0].text(), self.polaDU[1].text(), self.polaDU[2].text(), self.idsuppliera))
-        mydbNA.commit()
+        try:
+            self.kursorNA.execute('insert into service (serviceid, typeofservice, price, instock, supplierid) values (%s, %s, %s, %s, %s)', (str(i), self.polaDU[0].text(), self.polaDU[1].text(), self.polaDU[2].text(), self.idsuppliera))
+            mydbNA.commit()
+        except:
+            self.showPopupPustePole()
 
     # Twoje dane Dostawca
     def przejdzDoPrzegladaniaDanychDostawca(self):
