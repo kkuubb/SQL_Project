@@ -154,6 +154,7 @@ class oknoZaloguj(QMainWindow):
         l2s = l2size.width()
         self.lZR2.move(self.szerokosc/2-l2s/2, self.wysokosc*0.12)
         self.lZR2.hide()
+        self.lZR2.setAlignment(QtCore.Qt.AlignCenter)
 
         self.cbZR1 = QtWidgets.QComboBox(self)
         self.cbZR1.hide()
@@ -1277,7 +1278,12 @@ class oknoZaloguj(QMainWindow):
         k = 0
         for i in pola:
             i.setText(kolumny[k])
+            i.setAlignment(QtCore.Qt.AlignCenter)
             ldane[k].setText(str(dane[k]))
+            ldane[k].setAlignment(QtCore.Qt.AlignCenter)
+            ldane[k].setFrameShape(QtWidgets.QFrame.Panel)
+            ldane[k].setFrameShadow(QtWidgets.QFrame.Sunken)
+            ldane[k].setLineWidth(3)
             i.move(self.szerokosc/2-10*i.size().width()/2+k*i.size().width(), self.wysokosc*0.45)
             ldane[k].move(self.szerokosc/2-10*i.size().width()/2+k*i.size().width(), self.wysokosc*0.5)
             ldane[k].show()
@@ -1380,9 +1386,14 @@ class oknoZaloguj(QMainWindow):
         k = 0
         for i in pola:
             i.setText(kolumny[k])
+            i.setAlignment(QtCore.Qt.AlignCenter)
             ldane[k].setText(str(dane[k]))
-            i.move(self.szerokosc/2-8*i.size().width()/2+k*i.size().width(), self.wysokosc*0.45)
-            ldane[k].move(self.szerokosc/2-8*i.size().width()/2+k*i.size().width(), self.wysokosc*0.5)
+            ldane[k].setAlignment(QtCore.Qt.AlignCenter)
+            ldane[k].setFrameShape(QtWidgets.QFrame.Panel)
+            ldane[k].setFrameShadow(QtWidgets.QFrame.Sunken)
+            ldane[k].setLineWidth(3)
+            i.move(self.szerokosc/2-8*(i.size().width()+20)/2+k*(i.size().width()+20), self.wysokosc*0.45)
+            ldane[k].move(self.szerokosc/2-8*(i.size().width()+20)/2+k*(i.size().width()+20), self.wysokosc*0.5)
             ldane[k].show()
             i.show()
             k+=1
